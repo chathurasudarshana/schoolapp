@@ -1,0 +1,80 @@
+.sch-sidenav { 
+  background: linear-gradient(180deg, #34495e 0%, #2c3e50 100%); 
+  color: white; 
+  width: 250px; 
+  height: 100vh; 
+  position: fixed; 
+  left: 0; 
+  top: 0; 
+  z-index: 999; 
+  transition: width 0.3s ease; 
+  box-shadow: 2px 0 10px rgba(0,0,0,0.1); 
+  overflow: hidden;
+} 
+
+.sch-sidenav.collapsed { 
+  width: 60px; 
+} 
+
+.sidenav-header { 
+  padding: 1rem; 
+  border-bottom: 1px solid rgba(255,255,255,0.1); 
+  display: flex;
+  justify-content: center;
+} 
+
+.toggle-btn { 
+  background: rgba(255,255,255,0.1); 
+  border: 1px solid rgba(255,255,255,0.2); 
+  color: white; 
+  cursor: pointer; 
+  padding: 0.5rem; 
+  border-radius: 4px; 
+  font-size: 1.2rem; 
+  transition: all 0.3s ease;
+} 
+
+.toggle-btn:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.nav-list { 
+  list-style: none; 
+  padding: 0; 
+  margin: 0; 
+} 
+
+.nav-link { 
+  display: flex; 
+  align-items: center; 
+  padding: 0.75rem 1rem; 
+  color: rgba(255,255,255,0.8); 
+  text-decoration: none; 
+  gap: 1rem; 
+  transition: all 0.3s ease; 
+  white-space: nowrap;
+} 
+
+.nav-link:hover { 
+  background: rgba(255,255,255,0.1); 
+  color: white;
+} 
+
+.nav-link.active { 
+  background: linear-gradient(90deg, #3498db, #2980b9); 
+  color: white;
+}
+
+.nav-icon {
+  min-width: 20px;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+.nav-label {
+  transition: opacity 0.3s ease;
+}
+
+.sch-sidenav.collapsed .nav-label {
+  opacity: 0;
+}

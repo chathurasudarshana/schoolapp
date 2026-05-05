@@ -1,0 +1,23 @@
+.sch-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.main-content {
+  display: flex;
+  flex: 1;
+}
+
+.content-area {
+  flex: 1;
+  margin-left: 250px;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  transition: margin-left 0.3s ease;
+}
+
+/* Responsive styles when sidenav is collapsed */
+.sch-layout.sidenav-collapsed .content-area {
+  margin-left: 60px;
+}

@@ -1,0 +1,46 @@
+<div class="container">
+    @if (!courseId()) {
+    <h2>Add Course</h2>
+    } @else {
+    <h2>Edit Course</h2>
+    }
+
+    @if (!isCourseLoading()) {
+    <form
+        [formGroup]="courseForm"
+        (ngSubmit)="onSubmit()"
+    >
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input
+                id="name"
+                formControlName="name"
+                class="form-control"
+            />
+            @if (formControls['name'].touched && formControls['name'].invalid) {
+            <div class="text-danger">
+                @if (formControls['name'].errors?.['required']) {
+                <small>Name is required.</small>
+                }
+                @if (formControls['name'].errors?.['minlength']) {
+                <small>Name should be at least 2 characters.</small>
+                }
+            </div>
+            }
+        </div>
+
+        <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="isCourseSaving()"
+        >
+            Save
+        </button>
+        <button
+            type="button"
+            (click)="onBack()"
+            [disabled]="isCourseSaving()"
+        >Back</button>
+    </form>
+    }
+</div>

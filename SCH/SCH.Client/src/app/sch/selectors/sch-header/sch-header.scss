@@ -1,0 +1,133 @@
+.sch-header {
+  background: linear-gradient(90deg, #2c3e50 0%, #34495e 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-left: 250px;
+  transition: margin-left 0.3s ease;
+}
+
+.sch-header.sidenav-collapsed {
+  margin-left: 60px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+}
+
+.app-title {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #ecf0f1;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.user-menu {
+  .user-button {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+    color: #ecf0f1;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+    color: white;
+  }
+
+  .user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+
+    .user-name {
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.2;
+    }
+
+    .user-role {
+      font-size: 12px;
+      opacity: 0.8;
+      line-height: 1.2;
+    }
+  }
+}
+
+// Material Menu Customization
+::ng-deep {
+  .mat-mdc-menu-panel {
+    min-width: 280px;
+
+    .user-menu-header {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      gap: 12px;
+
+      .user-menu-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 18px;
+        color: white;
+      }
+
+      .user-menu-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        .user-menu-name {
+          font-weight: 500;
+          font-size: 14px;
+          color: #333;
+        }
+
+        .user-menu-email {
+          font-size: 12px;
+          color: #666;
+        }
+      }
+    }
+
+    .mat-mdc-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      mat-icon {
+        margin-right: 0;
+      }
+    }
+  }
+}

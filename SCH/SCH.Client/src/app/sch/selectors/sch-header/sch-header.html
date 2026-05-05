@@ -1,0 +1,50 @@
+﻿<header class="sch-header" [class.sidenav-collapsed]="isCollapsed()">
+  <div class="header-content">
+    <div class="header-left">
+      <h1 class="app-title">School Management System</h1>
+    </div>
+    @if (isAuthenticated()) {
+      <div class="header-right">
+        <div class="user-menu">
+          <button mat-button [matMenuTriggerFor]="userMenu" class="user-button">
+            <div class="user-avatar">{{ getUserInitials() }}</div>
+            <div class="user-info">
+              <span class="user-name">{{ getUserFullName() }}</span>
+              @if (currentUser()?.roles && currentUser()!.roles.length > 0) {
+                <span class="user-role">{{ currentUser()!.roles[0] }}</span>
+              }
+            </div>
+            <mat-icon>arrow_drop_down</mat-icon>
+          </button>
+          <mat-menu #userMenu="matMenu">
+            <div class="user-menu-header">
+              <div class="user-menu-avatar">{{ getUserInitials() }}</div>
+              <div class="user-menu-info">
+                <div class="user-menu-name">{{ getUserFullName() }}</div>
+                <div class="user-menu-email">{{ currentUser()?.email }}</div>
+              </div>
+            </div>
+            <mat-divider></mat-divider>
+            <button mat-menu-item>
+              <mat-icon>person</mat-icon>
+              <span>Profile</span>
+            </button>
+            <button mat-menu-item>
+              <mat-icon>settings</mat-icon>
+              <span>Settings</span>
+            </button>
+            <mat-divider></mat-divider>
+            <button mat-menu-item (click)="logout()">
+              <mat-icon>logout</mat-icon>
+              <span>Logout</span>
+            </button>
+            <button mat-menu-item (click)="logoutEverywhere()" class="logout-everywhere">
+              <mat-icon>power_settings_new</mat-icon>
+              <span>Logout Everywhere</span>
+            </button>
+          </mat-menu>
+        </div>
+      </div>
+    }
+  </div>
+</header>

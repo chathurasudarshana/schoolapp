@@ -1,0 +1,12 @@
+@if (imageName) {
+  <img 
+    [src]="imageName | secureImage:'image/getStudentProfile' | async" 
+    alt="Student Profile" 
+    class="student-photo"
+  />
+} @else {
+  <div class="student-photo-placeholder">
+    <span class="material-icons">person</span>
+  </div>
+}
+
