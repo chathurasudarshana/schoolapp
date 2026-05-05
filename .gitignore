@@ -1,0 +1,141 @@
+# ---------------------
+# Global Ignore
+# ---------------------
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.log
+*.vspscc
+*.vssscc
+*.dbmdl
+*.pdb
+
+# ---------------------
+# .NET & Visual Studio
+# ---------------------
+**/[Bb]in/
+**/[Oo]bj/
+**/.vs/
+**/*.csproj.user
+*.nupkg
+*.snupkg
+packages/
+TestResults/
+.vscode/
+.vs/
+*.tmpproj
+
+# Build results
+*.dll
+*.exe
+*.app
+*.map
+*.so
+*.dylib
+*.class
+
+# Publish output
+publish/
+out/
+
+# NuGet packages
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+
+# Resharper
+_ReSharper*/
+*.DotSettings.user
+
+# ---------------------
+# Angular (ClientApp)
+# ---------------------
+# Dist output
+**/dist/
+**/build/
+
+# Node modules
+**/node_modules/
+
+# Environment files
+**/src/environments/environment*.ts
+
+# Angular cache
+.angular/
+.angular-cache/
+.cache/
+
+# IDEs
+*.sublime-project
+*.sublime-workspace
+
+# Optional npm log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Package lock files (optional, depending on your policy)
+# package-lock.json
+# yarn.lock
+
+# ---------------------
+# SQL Projects (.sqlproj)
+# ---------------------
+**/*.dbmdl
+**/*.jfm
+**/Generated_*.sql
+
+# SSMS (SQL Server Management Studio) backup files
+*.bak
+*.dacpac
+*.trn
+
+# SQL Server LocalDB
+*.mdf
+*.ldf
+
+# ---------------------
+# Logs and Dumps
+# ---------------------
+*.log
+*.dmp
+*.stackdump
+
+# ---------------------
+# OS Specific
+# ---------------------
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ---------------------
+# Others
+# ---------------------
+.env
+.env.*
+
+# Yarn Plug'n'Play
+.pnp/
+.pnp.js
