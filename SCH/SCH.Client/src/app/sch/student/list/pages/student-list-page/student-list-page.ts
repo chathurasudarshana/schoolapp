@@ -220,10 +220,13 @@ export class StudentListPage {
     const filterModel: Record<string, any> = {};
     const textFields = ['firstName', 'lastName', 'email', 'phoneNumber', 'ssn'];
     for (const field of textFields) {
-      if (qp[field]) {
+      const op = qp[`${field}Operator`];
+      if (op === 'blank' || op === 'notBlank') {
+        filterModel[field] = { filterType: 'text', type: op };
+      } else if (qp[field]) {
         filterModel[field] = {
           filterType: 'text',
-          type: this.spOperatorToAgType(qp[`${field}Operator`] ?? 'eq'),
+          type: op ?? 'equals',
           filter: qp[field],
         };
       }
@@ -261,9 +264,13 @@ export class StudentListPage {
     ];
     for (const field of textFields) {
       const fm = filterModel[field as string];
-      if (fm?.filterType === 'text' && fm.filter) {
-        (p as any)[field] = fm.filter;
-        (p as any)[`${field}Operator`] = this.agTypeToSpOperator(fm.type);
+      if (fm?.filterType === 'text') {
+        if (fm.type === 'blank' || fm.type === 'notBlank') {
+          (p as any)[`${field}Operator`] = fm.type;
+        } else if (fm.filter) {
+          (p as any)[field] = fm.filter;
+          (p as any)[`${field}Operator`] = fm.type;
+        }
       }
     }
 
@@ -281,14 +288,6 @@ export class StudentListPage {
     return p;
   }
 
-  private agTypeToSpOperator(type: string): string {
-    const map: Record<string, string> = {
-      equals: 'eq', notEqual: 'ne', contains: 'contains',
-      startsWith: 'startswith', endsWith: 'endswith',
-    };
-    return map[type] ?? 'eq';
-  }
-
   private agDateTypeToSpOperator(type: string): string {
     const map: Record<string, string> = {
       equals: 'eq', notEqual: 'ne',
@@ -296,14 +295,6 @@ export class StudentListPage {
       lessThan: 'lt', lessThanOrEqual: 'lte',
     };
     return map[type] ?? 'eq';
-  }
-
-  private spOperatorToAgType(op: string): string {
-    const map: Record<string, string> = {
-      eq: 'equals', ne: 'notEqual', contains: 'contains',
-      startswith: 'startsWith', endswith: 'endsWith',
-    };
-    return map[op] ?? 'equals';
   }
 
   private spDateOperatorToAgType(op: string): string {

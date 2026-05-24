@@ -1,4 +1,4 @@
-﻿CREATE   PROCEDURE [dbo].[GetStudentGrid]
+﻿CREATE PROCEDURE [dbo].[GetStudentGrid]
     @PageNumber          INT,
     @PageSize            INT,
     @SortBy              NVARCHAR(100)  = NULL,
@@ -42,48 +42,63 @@ BEGIN
     WHERE
         -- FirstName filter
         (
-            @FirstName IS NULL
-            OR (@FirstNameOperator = 'eq'         AND s.FirstName =  @FirstName)
-            OR (@FirstNameOperator = 'ne'         AND s.FirstName <> @FirstName)
-            OR (@FirstNameOperator = 'contains'   AND s.FirstName LIKE '%' + @FirstName + '%')
-            OR (@FirstNameOperator = 'startswith' AND s.FirstName LIKE @FirstName + '%')
-            OR (@FirstNameOperator = 'endswith'   AND s.FirstName LIKE '%' + @FirstName)
+            @FirstNameOperator IS NULL
+            OR (@FirstNameOperator = 'equals'      AND s.FirstName =      @FirstName)
+            OR (@FirstNameOperator = 'notEqual'    AND s.FirstName <>     @FirstName)
+            OR (@FirstNameOperator = 'contains'    AND s.FirstName LIKE '%' + @FirstName + '%')
+            OR (@FirstNameOperator = 'notContains' AND s.FirstName NOT LIKE '%' + @FirstName + '%')
+            OR (@FirstNameOperator = 'startsWith'  AND s.FirstName LIKE   @FirstName + '%')
+            OR (@FirstNameOperator = 'endsWith'    AND s.FirstName LIKE '%' + @FirstName)
+            OR (@FirstNameOperator = 'blank'       AND (s.FirstName IS NULL OR s.FirstName = ''))
+            OR (@FirstNameOperator = 'notBlank'    AND (s.FirstName IS NOT NULL AND s.FirstName <> ''))
         )
         -- LastName filter
         AND (
-            @LastName IS NULL
-            OR (@LastNameOperator = 'eq'         AND s.LastName =  @LastName)
-            OR (@LastNameOperator = 'ne'         AND s.LastName <> @LastName)
-            OR (@LastNameOperator = 'contains'   AND s.LastName LIKE '%' + @LastName + '%')
-            OR (@LastNameOperator = 'startswith' AND s.LastName LIKE @LastName + '%')
-            OR (@LastNameOperator = 'endswith'   AND s.LastName LIKE '%' + @LastName)
+            @LastNameOperator IS NULL
+            OR (@LastNameOperator = 'equals'      AND s.LastName =      @LastName)
+            OR (@LastNameOperator = 'notEqual'    AND s.LastName <>     @LastName)
+            OR (@LastNameOperator = 'contains'    AND s.LastName LIKE '%' + @LastName + '%')
+            OR (@LastNameOperator = 'notContains' AND s.LastName NOT LIKE '%' + @LastName + '%')
+            OR (@LastNameOperator = 'startsWith'  AND s.LastName LIKE   @LastName + '%')
+            OR (@LastNameOperator = 'endsWith'    AND s.LastName LIKE '%' + @LastName)
+            OR (@LastNameOperator = 'blank'       AND (s.LastName IS NULL OR s.LastName = ''))
+            OR (@LastNameOperator = 'notBlank'    AND (s.LastName IS NOT NULL AND s.LastName <> ''))
         )
         -- Email filter
         AND (
-            @Email IS NULL
-            OR (@EmailOperator = 'eq'         AND s.Email =  @Email)
-            OR (@EmailOperator = 'ne'         AND s.Email <> @Email)
-            OR (@EmailOperator = 'contains'   AND s.Email LIKE '%' + @Email + '%')
-            OR (@EmailOperator = 'startswith' AND s.Email LIKE @Email + '%')
-            OR (@EmailOperator = 'endswith'   AND s.Email LIKE '%' + @Email)
+            @EmailOperator IS NULL
+            OR (@EmailOperator = 'equals'      AND s.Email =      @Email)
+            OR (@EmailOperator = 'notEqual'    AND s.Email <>     @Email)
+            OR (@EmailOperator = 'contains'    AND s.Email LIKE '%' + @Email + '%')
+            OR (@EmailOperator = 'notContains' AND s.Email NOT LIKE '%' + @Email + '%')
+            OR (@EmailOperator = 'startsWith'  AND s.Email LIKE   @Email + '%')
+            OR (@EmailOperator = 'endsWith'    AND s.Email LIKE '%' + @Email)
+            OR (@EmailOperator = 'blank'       AND (s.Email IS NULL OR s.Email = ''))
+            OR (@EmailOperator = 'notBlank'    AND (s.Email IS NOT NULL AND s.Email <> ''))
         )
         -- PhoneNumber filter
         AND (
-            @PhoneNumber IS NULL
-            OR (@PhoneNumberOperator = 'eq'         AND s.PhoneNumber =  @PhoneNumber)
-            OR (@PhoneNumberOperator = 'ne'         AND s.PhoneNumber <> @PhoneNumber)
-            OR (@PhoneNumberOperator = 'contains'   AND s.PhoneNumber LIKE '%' + @PhoneNumber + '%')
-            OR (@PhoneNumberOperator = 'startswith' AND s.PhoneNumber LIKE @PhoneNumber + '%')
-            OR (@PhoneNumberOperator = 'endswith'   AND s.PhoneNumber LIKE '%' + @PhoneNumber)
+            @PhoneNumberOperator IS NULL
+            OR (@PhoneNumberOperator = 'equals'      AND s.PhoneNumber =      @PhoneNumber)
+            OR (@PhoneNumberOperator = 'notEqual'    AND s.PhoneNumber <>     @PhoneNumber)
+            OR (@PhoneNumberOperator = 'contains'    AND s.PhoneNumber LIKE '%' + @PhoneNumber + '%')
+            OR (@PhoneNumberOperator = 'notContains' AND s.PhoneNumber NOT LIKE '%' + @PhoneNumber + '%')
+            OR (@PhoneNumberOperator = 'startsWith'  AND s.PhoneNumber LIKE   @PhoneNumber + '%')
+            OR (@PhoneNumberOperator = 'endsWith'    AND s.PhoneNumber LIKE '%' + @PhoneNumber)
+            OR (@PhoneNumberOperator = 'blank'       AND (s.PhoneNumber IS NULL OR s.PhoneNumber = ''))
+            OR (@PhoneNumberOperator = 'notBlank'    AND (s.PhoneNumber IS NOT NULL AND s.PhoneNumber <> ''))
         )
         -- SSN filter
         AND (
-            @SSN IS NULL
-            OR (@SSNOperator = 'eq'         AND s.SSN =  @SSN)
-            OR (@SSNOperator = 'ne'         AND s.SSN <> @SSN)
-            OR (@SSNOperator = 'contains'   AND s.SSN LIKE '%' + @SSN + '%')
-            OR (@SSNOperator = 'startswith' AND s.SSN LIKE @SSN + '%')
-            OR (@SSNOperator = 'endswith'   AND s.SSN LIKE '%' + @SSN)
+            @SSNOperator IS NULL
+            OR (@SSNOperator = 'equals'      AND s.SSN =      @SSN)
+            OR (@SSNOperator = 'notEqual'    AND s.SSN <>     @SSN)
+            OR (@SSNOperator = 'contains'    AND s.SSN LIKE '%' + @SSN + '%')
+            OR (@SSNOperator = 'notContains' AND s.SSN NOT LIKE '%' + @SSN + '%')
+            OR (@SSNOperator = 'startsWith'  AND s.SSN LIKE   @SSN + '%')
+            OR (@SSNOperator = 'endsWith'    AND s.SSN LIKE '%' + @SSN)
+            OR (@SSNOperator = 'blank'       AND (s.SSN IS NULL OR s.SSN = ''))
+            OR (@SSNOperator = 'notBlank'    AND (s.SSN IS NOT NULL AND s.SSN <> ''))
         )
         -- StartDate filter
         AND (
