@@ -12,6 +12,7 @@ import {
 } from 'ag-grid-community';
 import {
   ServerSideRowModelModule,
+  ServerSideRowModelApiModule,
   IServerSideDatasource,
   IServerSideGetRowsParams,
   SetFilterModule,
@@ -30,7 +31,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { StudentPhotoCell } from '../../../selectors/student-photo-cell/student-photo-cell';
 import { StudentGridRequest } from '../../../interfaces/student-grid-request';
 
-ModuleRegistry.registerModules([AllCommunityModule, ServerSideRowModelModule, SetFilterModule]);
+ModuleRegistry.registerModules([AllCommunityModule, ServerSideRowModelModule, ServerSideRowModelApiModule, SetFilterModule]);
 
 @Component({
   selector: 'sch-student-list-page',
@@ -407,6 +408,24 @@ export class StudentListPage {
 
   protected onAdd(): void {
     this.router.navigate(['../detail/0'], { relativeTo: this._avRoute });
+  }
+
+  protected onReset(): void {
+    this.pendingPage = 0;
+    this.page1HasFakeData = false;
+    const currentPageSize = this.gridApi.paginationGetPageSize();
+    if (currentPageSize !== this.paginationPageSize) {
+      (this.gridApi as any).setGridOption('cacheBlockSize', this.paginationPageSize);
+      this.gridApi.setGridOption('paginationPageSize', this.paginationPageSize);
+    }
+    this.gridApi.setFilterModel(null);
+    this.gridApi.applyColumnState({ defaultState: { sort: null } });
+  }
+
+  protected onRefresh(): void {
+    // Purge clears all blocks (including any fake block 0), then reloads current page
+    this.page1HasFakeData = false;
+    this.gridApi.refreshServerSide({ purge: true });
   }
 }
 

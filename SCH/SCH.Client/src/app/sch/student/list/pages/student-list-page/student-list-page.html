@@ -8,6 +8,16 @@
   [disabled]="gridDataLoading() || isDeleting() || rowData().length === 0"
 >Remove Shown</button>
 
+<button
+  (click)="onReset()"
+  [disabled]="gridDataLoading() || isDeleting()"
+>Reset</button>
+
+<button
+  (click)="onRefresh()"
+  [disabled]="gridDataLoading() || isDeleting()"
+>Refresh</button>
+
 <div class="content">
   <!-- The AG Grid component, with Dimensions, CSS Theme, Row Data, and Column Definition -->
   <ag-grid-angular
