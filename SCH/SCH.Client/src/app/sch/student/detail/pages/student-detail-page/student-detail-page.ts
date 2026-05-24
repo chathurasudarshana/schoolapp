@@ -216,6 +216,7 @@ export class StudentDetailPage implements OnInit, HasUnsavedChanges {
         .insertStudent(student)
         .subscribe({
           next: (id) => {
+            this.reset();
             this.router.navigate(['../', id], { relativeTo: this._avRoute });
             this.notification.success('Student added successfully');
           },

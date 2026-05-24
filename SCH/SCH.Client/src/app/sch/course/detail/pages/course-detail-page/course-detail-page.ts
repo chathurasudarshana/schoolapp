@@ -142,6 +142,7 @@ export class CourseDetailPage implements OnInit, HasUnsavedChanges {
         .insertCourse(course)
         .subscribe({
           next: (id) => {
+            this.reset();
             this.router.navigate(['../', id], { relativeTo: this._avRoute });
             this.notification.success('Course added successfully');
           },
