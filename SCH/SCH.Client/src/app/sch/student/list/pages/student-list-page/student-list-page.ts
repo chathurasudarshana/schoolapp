@@ -7,6 +7,7 @@ import {
   GridReadyEvent,
   CellClickedEvent,
   GridApi,
+  GridState,
   PaginationChangedEvent,
 } from 'ag-grid-community';
 import {
@@ -123,8 +124,12 @@ export class StudentListPage {
 
   protected readonly paginationPageSize: number;
   protected readonly paginationPageSizeSelector: number[];
+  protected readonly gridInitialState: GridState;
+  protected readonly initialCacheBlockSize: number;
 
   private gridApi!: GridApi;
+  private pendingPage = 0;
+  private page1HasFakeData = false;
 
   constructor(
     private readonly router: Router,
@@ -137,19 +142,27 @@ export class StudentListPage {
   ) {
     this.paginationPageSize = appConfig.paginationPageSize;
     this.paginationPageSizeSelector = appConfig.paginationPageSizeSelector;
+    this.gridInitialState = this.buildInitialState();
+    this.initialCacheBlockSize = this.gridInitialState.pagination?.pageSize ?? this.paginationPageSize;
   }
 
   protected onPaginationChanged(event: PaginationChangedEvent): void {
     if (event.newPageSize) {
-      // Keep cacheBlockSize in sync so each block = exactly one page
       (this.gridApi as any).setGridOption('cacheBlockSize', this.gridApi.paginationGetPageSize());
+    }
+    if (event.newPage && this.page1HasFakeData && this.gridApi.paginationGetCurrentPage() === 0) {
+      this.page1HasFakeData = false;
+      this.gridApi.refreshServerSide({ purge: true });
     }
   }
 
   protected onGridReady(params: GridReadyEvent): void {
     this.gridApi = params.api;
+    const savedPage = this._avRoute.snapshot.queryParams['pageNumber'];
+    if (savedPage && +savedPage > 1) {
+      this.pendingPage = +savedPage;
+    }
     this.gridApi.setGridOption('serverSideDatasource', this.createDatasource());
-    this.applyUrlState();
   }
 
   private createDatasource(): IServerSideDatasource {
@@ -159,6 +172,17 @@ export class StudentListPage {
         const pageSize = this.gridApi.paginationGetPageSize();
         const pageNumber = Math.floor(startRow! / pageSize) + 1;
 
+        // SSRM ignores initialState.pagination.page — it always starts at page 0.
+        // Intercept the forced page-1 call: return a fake success so ag-grid
+        // knows rows exist, then jump to the target page. One real API call total.
+        if (this.pendingPage > 0 && pageNumber === 1) {
+          const target = this.pendingPage - 1;
+          this.pendingPage = 0;
+          this.page1HasFakeData = true;
+          params.success({ rowData: [], rowCount: (target + 1) * pageSize });
+          this.gridApi.paginationGoToPage(target);
+          return;
+        }
         const sortCol = sortModel[0];
         const filterParams = this.buildFilterParams(filterModel as Record<string, any>);
 
@@ -188,10 +212,11 @@ export class StudentListPage {
     };
   }
 
-  private applyUrlState(): void {
+  private buildInitialState(): GridState {
     const qp = this._avRoute.snapshot.queryParams;
-    const filterModel: Record<string, any> = {};
+    const state: GridState = { partialColumnState: true };
 
+    const filterModel: Record<string, any> = {};
     const textFields = ['firstName', 'lastName', 'email', 'phoneNumber', 'ssn'];
     for (const field of textFields) {
       if (qp[field]) {
@@ -202,7 +227,6 @@ export class StudentListPage {
         };
       }
     }
-
     if (qp['startDate']) {
       filterModel['startDate'] = {
         filterType: 'date',
@@ -211,24 +235,21 @@ export class StudentListPage {
         dateTo: null,
       };
     }
-
     if (qp['isActive'] !== undefined) {
-      filterModel['isActive'] = {
-        filterType: 'set',
-        values: [qp['isActive'] === 'true'],
-      };
+      filterModel['isActive'] = { filterType: 'set', values: [qp['isActive'] === 'true'] };
     }
-
     if (Object.keys(filterModel).length > 0) {
-      this.gridApi.setFilterModel(filterModel);
+      state.filter = { filterModel };
     }
 
     if (qp['sortBy']) {
-      this.gridApi.applyColumnState({
-        state: [{ colId: qp['sortBy'], sort: qp['sortByOperator'] ?? 'asc' }],
-        defaultState: { sort: null },
-      });
+      state.sort = { sortModel: [{ colId: qp['sortBy'], sort: qp['sortByOperator'] ?? 'asc' }] };
     }
+
+    const pageSize = qp['pageSize'] ? +qp['pageSize'] : this.paginationPageSize;
+    state.pagination = { pageSize };
+
+    return state;
   }
 
   private buildFilterParams(filterModel: Record<string, any>): StudentGridRequest {
@@ -295,6 +316,8 @@ export class StudentListPage {
 
   private syncUrl(request: StudentGridRequest): void {
     const params: Record<string, string | null> = {
+      pageNumber:          String(request.pageNumber ?? 1),
+      pageSize:            String(request.pageSize ?? this.paginationPageSize),
       sortBy:              request.sortBy              ?? null,
       sortByOperator:      request.sortByOperator      ?? null,
       firstName:           request.firstName           ?? null,
