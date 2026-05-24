@@ -217,20 +217,7 @@ export class StudentListPage {
     const qp = this._avRoute.snapshot.queryParams;
     const state: GridState = { partialColumnState: true };
 
-    const filterModel: Record<string, any> = {};
-    const textFields = ['firstName', 'lastName', 'email', 'phoneNumber', 'ssn'];
-    for (const field of textFields) {
-      const op = qp[`${field}Operator`];
-      if (op === 'blank' || op === 'notBlank') {
-        filterModel[field] = { filterType: 'text', type: op };
-      } else if (qp[field]) {
-        filterModel[field] = {
-          filterType: 'text',
-          type: op ?? 'equals',
-          filter: qp[field],
-        };
-      }
-    }
+    const filterModel = this.buildTextFilterModel(qp);
     if (qp['startDate']) {
       filterModel['startDate'] = {
         filterType: 'date',
@@ -258,19 +245,11 @@ export class StudentListPage {
 
   private buildFilterParams(filterModel: Record<string, any>): StudentGridRequest {
     const p: StudentGridRequest = {};
-
-    const textFields: (keyof StudentGridRequest)[] = [
-      'firstName', 'lastName', 'email', 'phoneNumber', 'ssn',
-    ];
+    const textFields = ['firstName', 'lastName', 'email', 'phoneNumber', 'ssn'];
     for (const field of textFields) {
-      const fm = filterModel[field as string];
+      const fm = filterModel[field];
       if (fm?.filterType === 'text') {
-        if (fm.type === 'blank' || fm.type === 'notBlank') {
-          (p as any)[`${field}Operator`] = fm.type;
-        } else if (fm.filter) {
-          (p as any)[field] = fm.filter;
-          (p as any)[`${field}Operator`] = fm.type;
-        }
+        this.applyTextFilterParams(p, field, fm);
       }
     }
 
@@ -286,6 +265,64 @@ export class StudentListPage {
     }
 
     return p;
+  }
+
+  private buildTextFilterModel(qp: Record<string, any>): Record<string, any> {
+    const filterModel: Record<string, any> = {};
+    const textFields = ['firstName', 'lastName', 'email', 'phoneNumber', 'ssn'];
+    for (const field of textFields) {
+      const op1      = qp[`${field}Operator1`];
+      const val1     = qp[`${field}Value1`];
+      const op2      = qp[`${field}Operator2`];
+      const val2     = qp[`${field}Value2`];
+      const concatOp = qp[`${field}FilterConcatOperator`];
+
+      if (!op1) continue;
+
+      const cond1 = this.buildTextCondition(op1, val1);
+      if (!cond1) continue;
+
+      if (op2 && concatOp) {
+        const cond2 = this.buildTextCondition(op2, val2);
+        filterModel[field] = cond2
+          ? { filterType: 'text', operator: concatOp, conditions: [cond1, cond2] }
+          : cond1;
+      } else {
+        filterModel[field] = cond1;
+      }
+    }
+    return filterModel;
+  }
+
+  private applyTextFilterParams(p: StudentGridRequest, field: string, fm: any): void {
+    if (fm.conditions) {
+      const [c1, c2] = fm.conditions;
+      if (c1.type === 'blank' || c1.type === 'notBlank') {
+        (p as any)[`${field}Operator1`] = c1.type;
+      } else if (c1.filter) {
+        (p as any)[`${field}Value1`] = c1.filter;
+        (p as any)[`${field}Operator1`] = c1.type;
+      }
+      if (c2.type === 'blank' || c2.type === 'notBlank') {
+        (p as any)[`${field}Operator2`] = c2.type;
+      } else if (c2.filter) {
+        (p as any)[`${field}Value2`] = c2.filter;
+        (p as any)[`${field}Operator2`] = c2.type;
+      }
+      (p as any)[`${field}FilterConcatOperator`] = fm.operator;
+    } else if (fm.type === 'blank' || fm.type === 'notBlank') {
+      (p as any)[`${field}Operator1`] = fm.type;
+    } else if (fm.filter) {
+      (p as any)[`${field}Value1`] = fm.filter;
+      (p as any)[`${field}Operator1`] = fm.type;
+    }
+  }
+
+  private buildTextCondition(op: string, val?: string): Record<string, any> | null {
+    if (op === 'blank' || op === 'notBlank') {
+      return { filterType: 'text', type: op };
+    }
+    return val ? { filterType: 'text', type: op, filter: val } : null;
   }
 
   private agDateTypeToSpOperator(type: string): string {
@@ -312,16 +349,31 @@ export class StudentListPage {
       pageSize:            String(request.pageSize ?? this.paginationPageSize),
       sortBy:              request.sortBy              ?? null,
       sortByOperator:      request.sortByOperator      ?? null,
-      firstName:           request.firstName           ?? null,
-      firstNameOperator:   request.firstNameOperator   ?? null,
-      lastName:            request.lastName            ?? null,
-      lastNameOperator:    request.lastNameOperator    ?? null,
-      email:               request.email               ?? null,
-      emailOperator:       request.emailOperator       ?? null,
-      phoneNumber:         request.phoneNumber         ?? null,
-      phoneNumberOperator: request.phoneNumberOperator ?? null,
-      ssn:                 request.ssn                 ?? null,
-      ssnOperator:         request.ssnOperator         ?? null,
+      firstNameValue1:              request.firstNameValue1              ?? null,
+      firstNameOperator1:           request.firstNameOperator1           ?? null,
+      firstNameValue2:              request.firstNameValue2              ?? null,
+      firstNameOperator2:           request.firstNameOperator2           ?? null,
+      firstNameFilterConcatOperator: request.firstNameFilterConcatOperator ?? null,
+      lastNameValue1:               request.lastNameValue1               ?? null,
+      lastNameOperator1:            request.lastNameOperator1            ?? null,
+      lastNameValue2:               request.lastNameValue2               ?? null,
+      lastNameOperator2:            request.lastNameOperator2            ?? null,
+      lastNameFilterConcatOperator:  request.lastNameFilterConcatOperator  ?? null,
+      emailValue1:                  request.emailValue1                  ?? null,
+      emailOperator1:               request.emailOperator1               ?? null,
+      emailValue2:                  request.emailValue2                  ?? null,
+      emailOperator2:               request.emailOperator2               ?? null,
+      emailFilterConcatOperator:     request.emailFilterConcatOperator     ?? null,
+      phoneNumberValue1:            request.phoneNumberValue1            ?? null,
+      phoneNumberOperator1:         request.phoneNumberOperator1         ?? null,
+      phoneNumberValue2:            request.phoneNumberValue2            ?? null,
+      phoneNumberOperator2:         request.phoneNumberOperator2         ?? null,
+      phoneNumberFilterConcatOperator: request.phoneNumberFilterConcatOperator ?? null,
+      ssnValue1:                    request.ssnValue1                    ?? null,
+      ssnOperator1:                 request.ssnOperator1                 ?? null,
+      ssnValue2:                    request.ssnValue2                    ?? null,
+      ssnOperator2:                 request.ssnOperator2                 ?? null,
+      ssnFilterConcatOperator:       request.ssnFilterConcatOperator       ?? null,
       startDate:           request.startDate           ?? null,
       startDateOperator:   request.startDateOperator   ?? null,
       isActive:            request.isActive !== null && request.isActive !== undefined
