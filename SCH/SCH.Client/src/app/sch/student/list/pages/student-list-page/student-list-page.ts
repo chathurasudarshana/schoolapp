@@ -6,7 +6,15 @@ import {
   ColDef,
   GridReadyEvent,
   CellClickedEvent,
+  GridApi,
+  PaginationChangedEvent,
 } from 'ag-grid-community';
+import {
+  ServerSideRowModelModule,
+  IServerSideDatasource,
+  IServerSideGetRowsParams,
+  SetFilterModule,
+} from 'ag-grid-enterprise';
 import { Student } from '../../../../../sch/interfaces/student';
 import { StudentApi } from '../../../services/student-api';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -19,8 +27,9 @@ import { Notification } from '../../../../../services/notification';
 import { ConfirmDialog } from '../../../../../selectors/confirm-dialog/confirm-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { StudentPhotoCell } from '../../../selectors/student-photo-cell/student-photo-cell';
+import { StudentGridRequest } from '../../../interfaces/student-grid-request';
 
-ModuleRegistry.registerModules([AllCommunityModule]);
+ModuleRegistry.registerModules([AllCommunityModule, ServerSideRowModelModule, SetFilterModule]);
 
 @Component({
   selector: 'sch-student-list-page',
@@ -46,49 +55,53 @@ export class StudentListPage {
       headerName: 'ID',
       field: 'id',
       sortable: true,
-      filter: true,
+      filter: false,
     },
     {
       headerName: 'First Name',
       field: 'firstName',
       sortable: true,
-      filter: true,
+      filter: 'agTextColumnFilter',
     },
     {
       headerName: 'Last Name',
       field: 'lastName',
       sortable: true,
-      filter: true,
+      filter: 'agTextColumnFilter',
     },
     {
       headerName: 'Email',
       field: 'email',
       sortable: true,
-      filter: true,
+      filter: 'agTextColumnFilter',
     },
     {
       headerName: 'Phone Number',
       field: 'phoneNumber',
       sortable: true,
-      filter: true,
+      filter: 'agTextColumnFilter',
     },
     {
       headerName: 'SSN',
       field: 'ssn',
       sortable: true,
-      filter: true,
+      filter: 'agTextColumnFilter',
     },
     {
       headerName: 'Start Date',
       field: 'startDate',
       sortable: true,
-      filter: true,
+      filter: 'agDateColumnFilter',
     },
     {
       headerName: 'Active',
       field: 'isActive',
       sortable: true,
-      filter: true,
+      filter: 'agSetColumnFilter',
+      filterParams: {
+        values: [true, false],
+        valueFormatter: (params: any) => params.value ? 'Active' : 'Inactive',
+      },
     },
     {
       headerName: 'Actions',
@@ -107,7 +120,11 @@ export class StudentListPage {
   protected readonly gridDataLoading = signal(false);
   protected readonly isDeleting = signal(false);
 
-  private readonly apiUrl: string;
+
+  protected readonly paginationPageSize: number;
+  protected readonly paginationPageSizeSelector: number[];
+
+  private gridApi!: GridApi;
 
   constructor(
     private readonly router: Router,
@@ -118,34 +135,190 @@ export class StudentListPage {
     private readonly notification: Notification,
     @Inject(MatDialog) private readonly dialog: MatDialog
   ) {
-    this.apiUrl = this.appConfig.apiUrl;
+    this.paginationPageSize = appConfig.paginationPageSize;
+    this.paginationPageSizeSelector = appConfig.paginationPageSizeSelector;
   }
 
-  protected onGridReady(params: GridReadyEvent) {
-    this.setGridData();
+  protected onPaginationChanged(event: PaginationChangedEvent): void {
+    if (event.newPageSize) {
+      // Keep cacheBlockSize in sync so each block = exactly one page
+      (this.gridApi as any).setGridOption('cacheBlockSize', this.gridApi.paginationGetPageSize());
+    }
   }
 
-  private setGridData(): void {
-    this.gridDataLoading.set(true);
+  protected onGridReady(params: GridReadyEvent): void {
+    this.gridApi = params.api;
+    this.gridApi.setGridOption('serverSideDatasource', this.createDatasource());
+    this.applyUrlState();
+  }
 
-    this.studentApi
-      .getStudents(true)
-      .subscribe((data) => {
-        if (data?.length) {
-          for (const student of data) {
-            if (student.startDate) {
-              student.startDate = new Date(student.startDate);
-            }
-          }
+  private createDatasource(): IServerSideDatasource {
+    return {
+      getRows: (params: IServerSideGetRowsParams) => {
+        const { startRow, sortModel, filterModel } = params.request;
+        const pageSize = this.gridApi.paginationGetPageSize();
+        const pageNumber = Math.floor(startRow! / pageSize) + 1;
 
-          this.rowData.set(data);
-        } else {
-          this.rowData.set([]);
-        }
-      })
-      .add(() => {
-        this.gridDataLoading.set(false);
+        const sortCol = sortModel[0];
+        const filterParams = this.buildFilterParams(filterModel as Record<string, any>);
+
+        const request: StudentGridRequest = {
+          ...filterParams,
+          pageNumber,
+          pageSize,
+          sortBy: sortCol?.colId ?? null,
+          sortByOperator: sortCol?.sort ?? null,
+        };
+
+        this.syncUrl(request);
+
+        this.gridDataLoading.set(true);
+        this.studentApi.getStudentGrid(request).subscribe({
+          next: (result) => {
+            this.rowData.set(result.items);
+            this.gridDataLoading.set(false);
+            params.success({ rowData: result.items, rowCount: result.totalCount });
+          },
+          error: () => {
+            this.gridDataLoading.set(false);
+            params.fail();
+          },
+        });
+      },
+    };
+  }
+
+  private applyUrlState(): void {
+    const qp = this._avRoute.snapshot.queryParams;
+    const filterModel: Record<string, any> = {};
+
+    const textFields = ['firstName', 'lastName', 'email', 'phoneNumber', 'ssn'];
+    for (const field of textFields) {
+      if (qp[field]) {
+        filterModel[field] = {
+          filterType: 'text',
+          type: this.spOperatorToAgType(qp[`${field}Operator`] ?? 'eq'),
+          filter: qp[field],
+        };
+      }
+    }
+
+    if (qp['startDate']) {
+      filterModel['startDate'] = {
+        filterType: 'date',
+        type: this.spDateOperatorToAgType(qp['startDateOperator'] ?? 'eq'),
+        dateFrom: qp['startDate'],
+        dateTo: null,
+      };
+    }
+
+    if (qp['isActive'] !== undefined) {
+      filterModel['isActive'] = {
+        filterType: 'set',
+        values: [qp['isActive'] === 'true'],
+      };
+    }
+
+    if (Object.keys(filterModel).length > 0) {
+      this.gridApi.setFilterModel(filterModel);
+    }
+
+    if (qp['sortBy']) {
+      this.gridApi.applyColumnState({
+        state: [{ colId: qp['sortBy'], sort: qp['sortByOperator'] ?? 'asc' }],
+        defaultState: { sort: null },
       });
+    }
+  }
+
+  private buildFilterParams(filterModel: Record<string, any>): StudentGridRequest {
+    const p: StudentGridRequest = {};
+
+    const textFields: (keyof StudentGridRequest)[] = [
+      'firstName', 'lastName', 'email', 'phoneNumber', 'ssn',
+    ];
+    for (const field of textFields) {
+      const fm = filterModel[field as string];
+      if (fm?.filterType === 'text' && fm.filter) {
+        (p as any)[field] = fm.filter;
+        (p as any)[`${field}Operator`] = this.agTypeToSpOperator(fm.type);
+      }
+    }
+
+    const dateFm = filterModel['startDate'];
+    if (dateFm?.filterType === 'date' && dateFm.dateFrom) {
+      p.startDate = dateFm.dateFrom;
+      p.startDateOperator = this.agDateTypeToSpOperator(dateFm.type);
+    }
+
+    const setFm = filterModel['isActive'];
+    if (setFm?.filterType === 'set' && setFm.values?.length === 1) {
+      p.isActive = setFm.values[0] === true;
+    }
+
+    return p;
+  }
+
+  private agTypeToSpOperator(type: string): string {
+    const map: Record<string, string> = {
+      equals: 'eq', notEqual: 'ne', contains: 'contains',
+      startsWith: 'startswith', endsWith: 'endswith',
+    };
+    return map[type] ?? 'eq';
+  }
+
+  private agDateTypeToSpOperator(type: string): string {
+    const map: Record<string, string> = {
+      equals: 'eq', notEqual: 'ne',
+      greaterThan: 'gt', greaterThanOrEqual: 'gte',
+      lessThan: 'lt', lessThanOrEqual: 'lte',
+    };
+    return map[type] ?? 'eq';
+  }
+
+  private spOperatorToAgType(op: string): string {
+    const map: Record<string, string> = {
+      eq: 'equals', ne: 'notEqual', contains: 'contains',
+      startswith: 'startsWith', endswith: 'endsWith',
+    };
+    return map[op] ?? 'equals';
+  }
+
+  private spDateOperatorToAgType(op: string): string {
+    const map: Record<string, string> = {
+      eq: 'equals', ne: 'notEqual',
+      gt: 'greaterThan', gte: 'greaterThanOrEqual',
+      lt: 'lessThan', lte: 'lessThanOrEqual',
+    };
+    return map[op] ?? 'equals';
+  }
+
+  private syncUrl(request: StudentGridRequest): void {
+    const params: Record<string, string | null> = {
+      sortBy:              request.sortBy              ?? null,
+      sortByOperator:      request.sortByOperator      ?? null,
+      firstName:           request.firstName           ?? null,
+      firstNameOperator:   request.firstNameOperator   ?? null,
+      lastName:            request.lastName            ?? null,
+      lastNameOperator:    request.lastNameOperator    ?? null,
+      email:               request.email               ?? null,
+      emailOperator:       request.emailOperator       ?? null,
+      phoneNumber:         request.phoneNumber         ?? null,
+      phoneNumberOperator: request.phoneNumberOperator ?? null,
+      ssn:                 request.ssn                 ?? null,
+      ssnOperator:         request.ssnOperator         ?? null,
+      startDate:           request.startDate           ?? null,
+      startDateOperator:   request.startDateOperator   ?? null,
+      isActive:            request.isActive !== null && request.isActive !== undefined
+                             ? String(request.isActive) : null,
+    };
+
+    this.router.navigate([], {
+      relativeTo: this._avRoute,
+      queryParams: params,
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   protected onCellClicked(event: CellClickedEvent): void {
@@ -165,10 +338,10 @@ export class StudentListPage {
     });
   }
 
-  protected onRemoveAll(): void {
+  protected onRemoveShown(): void {
     const dialogRef = this.dialog.open(ConfirmDialog, {
       data: {
-        message: 'Are you sure you want to remove all students?',
+        message: 'Are you sure you want to remove the shown students?',
         cancelText: 'Cancel',
         confirmText: 'Delete',
       },
@@ -198,11 +371,11 @@ export class StudentListPage {
       )
       .subscribe({
         complete: () => {
-          this.setGridData();
+          this.gridApi.refreshServerSide({ purge: true });
           this.notification.success('Student deleted successfully');
           this.isDeleting.set(false);
         },
-        error: (err) => {
+        error: () => {
           this.notification.error('Failed to delete student');
           this.isDeleting.set(false);
         },
@@ -213,3 +386,4 @@ export class StudentListPage {
     this.router.navigate(['../detail/0'], { relativeTo: this._avRoute });
   }
 }
+

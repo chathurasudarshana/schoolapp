@@ -1,5 +1,7 @@
 {
   "apiUrl": "https://localhost:44398/api",
-  "idleLogoutTime": 0.1,
-  "refreshTokenTime": 0.1
+  "idleLogoutTime": 0.7,
+  "refreshTokenTime": 0.8,
+  "paginationPageSize": 2,
+  "paginationPageSizeSelector": [2, 5, 10]
 }

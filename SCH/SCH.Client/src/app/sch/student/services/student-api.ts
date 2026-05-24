@@ -5,6 +5,8 @@ import { Student } from '../../../sch/interfaces/student';
 import { AppConfig } from '../../../interfaces/app-config';
 import { APP_CONFIG } from '../../../injection-tokens/app-config.token';
 import { StudentCourseMap } from '../../../sch/interfaces/student-course-map';
+import { PagedResult } from '../../../interfaces/paged-result';
+import { StudentGridRequest } from '../interfaces/student-grid-request';
 
 @Injectable()
 export class StudentApi {
@@ -67,5 +69,37 @@ export class StudentApi {
     return this.http.delete<void>(
       `${this.apiUrl}/students/${id}/courses/${courseId}`
     );
+  }
+
+  public getStudentGrid(request: StudentGridRequest): Observable<PagedResult<Student>> {
+    let params = new HttpParams();
+
+    const entries: [string, string | boolean | number | null | undefined][] = [
+      ['pageNumber',          request.pageNumber],
+      ['pageSize',            request.pageSize],
+      ['sortBy',              request.sortBy],
+      ['sortByOperator',      request.sortByOperator],
+      ['firstName',           request.firstName],
+      ['firstNameOperator',   request.firstNameOperator],
+      ['lastName',            request.lastName],
+      ['lastNameOperator',    request.lastNameOperator],
+      ['email',               request.email],
+      ['emailOperator',       request.emailOperator],
+      ['phoneNumber',         request.phoneNumber],
+      ['phoneNumberOperator', request.phoneNumberOperator],
+      ['ssn',                 request.ssn],
+      ['ssnOperator',         request.ssnOperator],
+      ['startDate',           request.startDate],
+      ['startDateOperator',   request.startDateOperator],
+      ['isActive',            request.isActive],
+    ];
+
+    for (const [key, value] of entries) {
+      if (value != null) {
+        params = params.set(key, String(value));
+      }
+    }
+
+    return this.http.get<PagedResult<Student>>(`${this.apiUrl}/students/grid`, { params });
   }
 }

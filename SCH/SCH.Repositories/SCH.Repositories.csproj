@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SCH.Mappings\SCH.Mappings.csproj" />
     <ProjectReference Include="..\SCH.Models\SCH.Models.csproj" />
     <ProjectReference Include="..\SCH.Shared\SCH.Shared.csproj" />
   </ItemGroup>

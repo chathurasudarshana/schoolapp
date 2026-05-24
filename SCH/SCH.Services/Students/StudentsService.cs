@@ -1,11 +1,12 @@
 namespace SCH.Services.Students
 {
+    using AutoMapper;
+    using SCH.Models.Common.GridEntities;
     using SCH.Models.Courses.Entities;
     using SCH.Models.StudentCourseMap.ClientDtos;
     using SCH.Models.StudentCourseMap.Entities;
     using SCH.Models.Students.ClientDtos;
     using SCH.Models.Students.Entities;
-    using AutoMapper;
     using SCH.Repositories.Courses;
     using SCH.Repositories.StudentCourseMap;
     using SCH.Repositories.Students;
@@ -204,6 +205,20 @@ namespace SCH.Services.Students
                 .DeleteStudentCourseMapAsync(id, courseId);
 
             await unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task<PagedResult<StudentDto>> GetStudentGridAsync(StudentGridRequest request)
+        {
+            PagedResult<Student> result = await studentsRepository
+                .GetStudentGridAsync(request);
+
+            return new PagedResult<StudentDto>
+            {
+                Items      = mapper.Map<List<StudentDto>>(result.Items),
+                TotalCount = result.TotalCount,
+                PageNumber = result.PageNumber,
+                PageSize   = result.PageSize,
+            };
         }
 
         private async Task ValidateCourses(StudentDto student)

@@ -212,7 +212,7 @@ BEGIN
         ,'email1@mail.com'
         ,'phonenumber1'
         ,'ssn1'
-        ,'image1'
+        ,'image1.png'
         ,'2024-11-11'
         ,1
         ,@AdminUserIdForStudents  -- CreatedBy (admin user)
@@ -226,7 +226,7 @@ BEGIN
         ,'email2@mail.com'
         ,'phonenumber2'
         ,'ssn2'
-        ,'image2'
+        ,'image2.png'
         ,'2024-11-12'
         ,1
         ,@AdminUserIdForStudents  -- CreatedBy (admin user)
@@ -240,7 +240,7 @@ BEGIN
         ,'email3@mail.com'
         ,'phonenumber3'
         ,'ssn3'
-        ,'image3'
+        ,'image3.png'
         ,'2024-11-13'
         ,1
         ,@AdminUserIdForStudents  -- CreatedBy (admin user)
@@ -254,7 +254,7 @@ BEGIN
         ,'email4@mail.com'
         ,'phonenumber4'
         ,'ssn4'
-        ,'image4'
+        ,'image4.png'
         ,'2024-11-14'
         ,1
         ,@AdminUserIdForStudents  -- CreatedBy (admin user)
@@ -268,7 +268,7 @@ BEGIN
         ,'email5@mail.com'
         ,'phonenumber5'
         ,'ssn5'
-        ,'image5'
+        ,'image5.png'
         ,'2024-11-15'
         ,0
         ,@AdminUserIdForStudents  -- CreatedBy (admin user)
@@ -282,7 +282,7 @@ BEGIN
         ,'email6@mail.com'
         ,'phonenumber6'
         ,'ssn6'
-        ,'image6'
+        ,'image6.png'
         ,'2024-11-16'
         ,1
         ,@AdminUserIdForStudents  -- CreatedBy (admin user)

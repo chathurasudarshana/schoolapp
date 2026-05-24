@@ -1,5 +1,6 @@
 ﻿namespace SCH.Services.Students
 {
+    using SCH.Models.Common.GridEntities;
     using SCH.Models.StudentCourseMap.ClientDtos;
     using SCH.Models.Students.ClientDtos;
 
@@ -21,5 +22,6 @@
 
         Task DeleteCourseAsync(int id, int courseId);
 
+        Task<PagedResult<StudentDto>> GetStudentGridAsync(StudentGridRequest request);
     }
 }
