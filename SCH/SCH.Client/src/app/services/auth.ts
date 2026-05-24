@@ -273,13 +273,17 @@ export class Auth {
     const timeUntilRefresh = refreshAtTime - now;
 
     // If already past refresh time, refresh immediately
+    // Use setTimeout to defer the HTTP call past the Auth construction phase,
+    // preventing the jwtInterceptor from injecting Auth while it is still being hydrated (NG0200).
     if (timeUntilRefresh <= 0) {
-      this.refreshToken().subscribe({
-        error: (err) => {
-          console.error('Auto-refresh failed:', err);
-          this.navigateToLogin();
-        }
-      });
+      setTimeout(() => {
+        this.refreshToken().subscribe({
+          error: (err) => {
+            console.error('Auto-refresh failed:', err);
+            this.navigateToLogin();
+          }
+        });
+      }, 0);
       return;
     }
 
