@@ -178,7 +178,126 @@ END
 GO
 
 -- =============================================
--- SECTION 3: Seed Student Mock Data
+-- SECTION 3: Seed Basic User
+-- =============================================
+-- Password: Basic123!
+-- This is a default password - CHANGE IT IN PRODUCTION!
+
+DECLARE @BasicUserId INT;
+DECLARE @BasicRoleId INT;
+
+IF NOT EXISTS (SELECT 1 FROM [identity].[AspNetUsers] WHERE [UserName] = 'basicuser')
+BEGIN
+    INSERT INTO [identity].[AspNetUsers]
+    (
+        [UserName],
+        [NormalizedUserName],
+        [Email],
+        [NormalizedEmail],
+        [EmailConfirmed],
+        [PasswordHash],
+        [SecurityStamp],
+        [ConcurrencyStamp],
+        [PhoneNumber],
+        [PhoneNumberConfirmed],
+        [TwoFactorEnabled],
+        [LockoutEnd],
+        [LockoutEnabled],
+        [AccessFailedCount],
+        [FirstName],
+        [LastName],
+        [IsActive],
+        [CreatedDate],
+        [LastLoginDate],
+        [CreatedBy],
+        [ModifiedBy],
+        [ModifiedDate]
+    )
+    VALUES
+    (
+        'basicuser',                                                                -- UserName
+        'BASICUSER',                                                                -- NormalizedUserName
+        'basicuser@schoolapp.com',                                                  -- Email
+        'BASICUSER@SCHOOLAPP.COM',                                                  -- NormalizedEmail
+        1,                                                                          -- EmailConfirmed
+        'AQAAAAIAAYagAAAAEIGSV6dcLldguuvqLg4nEDB8keDYvX5ahRVABWljBJVJngrbWoC9HxCZl6fnLh+EWw==', -- PasswordHash for "Basic123!" (generated with ASP.NET Identity PasswordHasher)
+        NEWID(),                                                                    -- SecurityStamp
+        NEWID(),                                                                    -- ConcurrencyStamp
+        NULL,                                                                       -- PhoneNumber
+        0,                                                                          -- PhoneNumberConfirmed
+        0,                                                                          -- TwoFactorEnabled
+        NULL,                                                                       -- LockoutEnd
+        1,                                                                          -- LockoutEnabled
+        0,                                                                          -- AccessFailedCount
+        'Basic',                                                                    -- FirstName
+        'User',                                                                     -- LastName
+        1,                                                                          -- IsActive
+        GETUTCDATE(),                                                               -- CreatedDate
+        NULL,                                                                       -- LastLoginDate
+        NULL,                                                                       -- CreatedBy
+        NULL,                                                                       -- ModifiedBy
+        NULL                                                                        -- ModifiedDate
+    );
+
+    SET @BasicUserId = SCOPE_IDENTITY();
+    PRINT 'Basic user created with UserId: ' + CAST(@BasicUserId AS NVARCHAR(10));
+
+    -- Get Basic Role Id
+    SELECT @BasicRoleId = [Id] FROM [identity].[AspNetRoles] WHERE [Name] = 'Basic';
+
+    -- Assign Basic role to Basic user
+    IF NOT EXISTS (SELECT 1 FROM [identity].[AspNetUserRoles] WHERE [UserId] = @BasicUserId AND [RoleId] = @BasicRoleId)
+    BEGIN
+        INSERT INTO [identity].[AspNetUserRoles]
+        (
+            [UserId],
+            [RoleId]
+        )
+        VALUES
+        (
+            @BasicUserId,
+            @BasicRoleId
+        );
+
+        PRINT 'Basic role assigned to basic user';
+    END
+
+    -- Create corresponding domain user record
+    IF NOT EXISTS (SELECT 1 FROM [dbo].[User] WHERE [Id] = @BasicUserId)
+    BEGIN
+        INSERT INTO [dbo].[User]
+        (
+            [Id],
+            [FirstName],
+            [LastName],
+            [CreatedBy],
+            [CreatedDate],
+            [ModifiedBy],
+            [ModifiedDate]
+        )
+        VALUES
+        (
+            @BasicUserId,
+            'Basic',
+            'User',
+            NULL,           -- CreatedBy
+            GETUTCDATE(),   -- CreatedDate
+            NULL,           -- ModifiedBy
+            NULL            -- ModifiedDate
+        );
+
+        PRINT 'Domain user record created for basic user';
+    END
+END
+ELSE
+BEGIN
+    PRINT 'Basic user already exists';
+END
+
+GO
+
+-- =============================================
+-- SECTION 4: Seed Student Mock Data
 -- =============================================
 IF NOT EXISTS
 (
