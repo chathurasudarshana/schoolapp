@@ -221,7 +221,7 @@ export class StudentListPage {
     const dateFm = this.buildDateFilterModel(qp);
     if (dateFm) filterModel['startDate'] = dateFm;
     if (qp['isActive'] !== undefined) {
-      filterModel['isActive'] = { filterType: 'set', values: [qp['isActive'] === 'true'] };
+      filterModel['isActive'] = { filterType: 'set', values: [qp['isActive']] };
     }
     if (Object.keys(filterModel).length > 0) {
       state.filter = { filterModel };
@@ -254,7 +254,8 @@ export class StudentListPage {
 
     const setFm = filterModel['isActive'];
     if (setFm?.filterType === 'set' && setFm.values?.length === 1) {
-      p.isActive = setFm.values[0] === true;
+      const v = setFm.values[0];
+      p.isActive = v === true || v === 'true';
     }
 
     return p;
