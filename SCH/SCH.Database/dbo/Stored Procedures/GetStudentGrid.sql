@@ -28,8 +28,13 @@
     @SSNValue2                        NVARCHAR(20)  = NULL,
     @SSNOperator2                     NVARCHAR(20)  = NULL,
     @SSNFilterConcatOperator          NVARCHAR(5)   = NULL,   -- 'AND' | 'OR'
-    @StartDate           NVARCHAR(30)   = NULL,   -- ISO date string, e.g. '2024-01-15'
-    @StartDateOperator   NVARCHAR(20)   = NULL,   -- 'eq' | 'ne' | 'gt' | 'gte' | 'lt' | 'lte'
+    @StartDateOperator1               NVARCHAR(20)  = NULL,   -- ag-grid operator name
+    @StartDateValue1                  NVARCHAR(30)  = NULL,   -- dateFrom (ISO date string)
+    @StartDateValue2                  NVARCHAR(30)  = NULL,   -- dateTo   (inRange only)
+    @StartDateFilterConcatOperator    NVARCHAR(5)   = NULL,   -- 'AND' | 'OR'
+    @StartDateOperator2               NVARCHAR(20)  = NULL,
+    @StartDateValue3                  NVARCHAR(30)  = NULL,   -- dateFrom for cond 2
+    @StartDateValue4                  NVARCHAR(30)  = NULL,   -- dateTo   for cond 2 (inRange only)
     @IsActive            BIT            = NULL
 AS
 BEGIN
@@ -398,15 +403,103 @@ BEGIN
             )
         )
         -- StartDate filter
-        AND 
+        AND
         (
-            @StartDate IS NULL
-            OR (@StartDateOperator = 'eq'  AND CAST(s.StartDate AS DATE) =  CAST(@StartDate AS DATE))
-            OR (@StartDateOperator = 'ne'  AND CAST(s.StartDate AS DATE) <> CAST(@StartDate AS DATE))
-            OR (@StartDateOperator = 'gt'  AND s.StartDate >  CAST(@StartDate AS DATETIME))
-            OR (@StartDateOperator = 'gte' AND s.StartDate >= CAST(@StartDate AS DATETIME))
-            OR (@StartDateOperator = 'lt'  AND s.StartDate <  CAST(@StartDate AS DATETIME))
-            OR (@StartDateOperator = 'lte' AND s.StartDate <= CAST(@StartDate AS DATETIME))
+            @StartDateOperator1 IS NULL
+            OR
+            (
+                @StartDateOperator2 IS NULL
+                AND
+                (
+                    (@StartDateOperator1 = 'equals'              AND CAST(s.StartDate AS DATE) =  CAST(@StartDateValue1 AS DATE))
+                    OR (@StartDateOperator1 = 'notEqual'         AND CAST(s.StartDate AS DATE) <> CAST(@StartDateValue1 AS DATE))
+                    OR (@StartDateOperator1 = 'greaterThan'      AND s.StartDate >  CAST(@StartDateValue1 AS DATETIME))
+                    OR (@StartDateOperator1 = 'greaterThanOrEqual' AND s.StartDate >= CAST(@StartDateValue1 AS DATETIME))
+                    OR (@StartDateOperator1 = 'lessThan'         AND s.StartDate <  CAST(@StartDateValue1 AS DATETIME))
+                    OR (@StartDateOperator1 = 'lessThanOrEqual'  AND s.StartDate <= CAST(@StartDateValue1 AS DATETIME))
+                    OR 
+                    (
+                        @StartDateOperator1 = 'inRange'
+                        AND s.StartDate >= CAST(@StartDateValue1 AS DATETIME) 
+                        AND s.StartDate <= CAST(@StartDateValue2 AS DATETIME)
+                    )
+                    OR (@StartDateOperator1 = 'blank'            AND s.StartDate IS NULL)
+                    OR (@StartDateOperator1 = 'notBlank'         AND s.StartDate IS NOT NULL)
+                )
+            )
+            OR
+            (
+                @StartDateFilterConcatOperator = 'OR'
+                AND
+                (
+                    (@StartDateOperator1 = 'equals'              AND CAST(s.StartDate AS DATE) =  CAST(@StartDateValue1 AS DATE))
+                    OR (@StartDateOperator1 = 'notEqual'         AND CAST(s.StartDate AS DATE) <> CAST(@StartDateValue1 AS DATE))
+                    OR (@StartDateOperator1 = 'greaterThan'      AND s.StartDate >  CAST(@StartDateValue1 AS DATETIME))
+                    OR (@StartDateOperator1 = 'greaterThanOrEqual' AND s.StartDate >= CAST(@StartDateValue1 AS DATETIME))
+                    OR (@StartDateOperator1 = 'lessThan'         AND s.StartDate <  CAST(@StartDateValue1 AS DATETIME))
+                    OR (@StartDateOperator1 = 'lessThanOrEqual'  AND s.StartDate <= CAST(@StartDateValue1 AS DATETIME))
+                    OR 
+                    (
+                        @StartDateOperator1 = 'inRange'
+                        AND s.StartDate >= CAST(@StartDateValue1 AS DATETIME) 
+                        AND s.StartDate <= CAST(@StartDateValue2 AS DATETIME)
+                    )
+                    OR (@StartDateOperator1 = 'blank'            AND s.StartDate IS NULL)
+                    OR (@StartDateOperator1 = 'notBlank'         AND s.StartDate IS NOT NULL)
+                    OR (@StartDateOperator2 = 'equals'           AND CAST(s.StartDate AS DATE) =  CAST(@StartDateValue3 AS DATE))
+                    OR (@StartDateOperator2 = 'notEqual'         AND CAST(s.StartDate AS DATE) <> CAST(@StartDateValue3 AS DATE))
+                    OR (@StartDateOperator2 = 'greaterThan'      AND s.StartDate >  CAST(@StartDateValue3 AS DATETIME))
+                    OR (@StartDateOperator2 = 'greaterThanOrEqual' AND s.StartDate >= CAST(@StartDateValue3 AS DATETIME))
+                    OR (@StartDateOperator2 = 'lessThan'         AND s.StartDate <  CAST(@StartDateValue3 AS DATETIME))
+                    OR (@StartDateOperator2 = 'lessThanOrEqual'  AND s.StartDate <= CAST(@StartDateValue3 AS DATETIME))
+                    OR 
+                    (
+                        @StartDateOperator2 = 'inRange'
+                        AND s.StartDate >= CAST(@StartDateValue3 AS DATETIME) 
+                        AND s.StartDate <= CAST(@StartDateValue4 AS DATETIME)
+                    )
+                    OR (@StartDateOperator2 = 'blank'            AND s.StartDate IS NULL)
+                    OR (@StartDateOperator2 = 'notBlank'         AND s.StartDate IS NOT NULL)
+                )
+            )
+            OR
+            (
+                @StartDateFilterConcatOperator = 'AND'
+                AND
+                (
+                    (@StartDateOperator1 = 'equals'              AND CAST(s.StartDate AS DATE) =  CAST(@StartDateValue1 AS DATE))
+                    OR (@StartDateOperator1 = 'notEqual'         AND CAST(s.StartDate AS DATE) <> CAST(@StartDateValue1 AS DATE))
+                    OR (@StartDateOperator1 = 'greaterThan'      AND s.StartDate >  CAST(@StartDateValue1 AS DATETIME))
+                    OR (@StartDateOperator1 = 'greaterThanOrEqual' AND s.StartDate >= CAST(@StartDateValue1 AS DATETIME))
+                    OR (@StartDateOperator1 = 'lessThan'         AND s.StartDate <  CAST(@StartDateValue1 AS DATETIME))
+                    OR (@StartDateOperator1 = 'lessThanOrEqual'  AND s.StartDate <= CAST(@StartDateValue1 AS DATETIME))
+                    OR 
+                    (
+                        @StartDateOperator1 = 'inRange'
+                        AND s.StartDate >= CAST(@StartDateValue1 AS DATETIME) 
+                        AND s.StartDate <= CAST(@StartDateValue2 AS DATETIME)
+                    )
+                    OR (@StartDateOperator1 = 'blank'            AND s.StartDate IS NULL)
+                    OR (@StartDateOperator1 = 'notBlank'         AND s.StartDate IS NOT NULL)
+                )
+                AND
+                (
+                    (@StartDateOperator2 = 'equals'              AND CAST(s.StartDate AS DATE) =  CAST(@StartDateValue3 AS DATE))
+                    OR (@StartDateOperator2 = 'notEqual'         AND CAST(s.StartDate AS DATE) <> CAST(@StartDateValue3 AS DATE))
+                    OR (@StartDateOperator2 = 'greaterThan'      AND s.StartDate >  CAST(@StartDateValue3 AS DATETIME))
+                    OR (@StartDateOperator2 = 'greaterThanOrEqual' AND s.StartDate >= CAST(@StartDateValue3 AS DATETIME))
+                    OR (@StartDateOperator2 = 'lessThan'         AND s.StartDate <  CAST(@StartDateValue3 AS DATETIME))
+                    OR (@StartDateOperator2 = 'lessThanOrEqual'  AND s.StartDate <= CAST(@StartDateValue3 AS DATETIME))
+                    OR 
+                    (
+                        @StartDateOperator2 = 'inRange'
+                        AND s.StartDate >= CAST(@StartDateValue3 AS DATETIME) 
+                        AND s.StartDate <= CAST(@StartDateValue4 AS DATETIME)
+                    )
+                    OR (@StartDateOperator2 = 'blank'            AND s.StartDate IS NULL)
+                    OR (@StartDateOperator2 = 'notBlank'         AND s.StartDate IS NOT NULL)
+                )
+            )
         )
         -- IsActive filter
         AND (@IsActive IS NULL OR s.IsActive = @IsActive)

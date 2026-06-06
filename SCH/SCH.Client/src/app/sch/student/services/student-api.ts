@@ -104,8 +104,13 @@ export class StudentApi {
       ['ssnValue2',                     request.ssnValue2],
       ['ssnOperator2',                  request.ssnOperator2],
       ['ssnFilterConcatOperator',       request.ssnFilterConcatOperator],
-      ['startDate',                     request.startDate],
-      ['startDateOperator',             request.startDateOperator],
+      ['startDateOperator1',            request.startDateOperator1],
+      ['startDateValue1',               request.startDateValue1],
+      ['startDateValue2',               request.startDateValue2],
+      ['startDateFilterConcatOperator', request.startDateFilterConcatOperator],
+      ['startDateOperator2',            request.startDateOperator2],
+      ['startDateValue3',               request.startDateValue3],
+      ['startDateValue4',               request.startDateValue4],
       ['isActive',                      request.isActive],
     ];
 

@@ -218,14 +218,8 @@ export class StudentListPage {
     const state: GridState = { partialColumnState: true };
 
     const filterModel = this.buildTextFilterModel(qp);
-    if (qp['startDate']) {
-      filterModel['startDate'] = {
-        filterType: 'date',
-        type: this.spDateOperatorToAgType(qp['startDateOperator'] ?? 'eq'),
-        dateFrom: qp['startDate'],
-        dateTo: null,
-      };
-    }
+    const dateFm = this.buildDateFilterModel(qp);
+    if (dateFm) filterModel['startDate'] = dateFm;
     if (qp['isActive'] !== undefined) {
       filterModel['isActive'] = { filterType: 'set', values: [qp['isActive'] === 'true'] };
     }
@@ -254,9 +248,8 @@ export class StudentListPage {
     }
 
     const dateFm = filterModel['startDate'];
-    if (dateFm?.filterType === 'date' && dateFm.dateFrom) {
-      p.startDate = dateFm.dateFrom;
-      p.startDateOperator = this.agDateTypeToSpOperator(dateFm.type);
+    if (dateFm?.filterType === 'date') {
+      this.applyDateFilterParams(p, dateFm);
     }
 
     const setFm = filterModel['isActive'];
@@ -325,22 +318,60 @@ export class StudentListPage {
     return val ? { filterType: 'text', type: op, filter: val } : null;
   }
 
-  private agDateTypeToSpOperator(type: string): string {
-    const map: Record<string, string> = {
-      equals: 'eq', notEqual: 'ne',
-      greaterThan: 'gt', greaterThanOrEqual: 'gte',
-      lessThan: 'lt', lessThanOrEqual: 'lte',
-    };
-    return map[type] ?? 'eq';
+  private buildDateFilterModel(qp: Record<string, any>): Record<string, any> | null {
+    const op1      = qp['startDateOperator1'];
+    const val1     = qp['startDateValue1'];
+    const val2     = qp['startDateValue2'];   // dateTo for inRange cond 1
+    const concatOp = qp['startDateFilterConcatOperator'];
+    const op2      = qp['startDateOperator2'];
+    const val3     = qp['startDateValue3'];
+    const val4     = qp['startDateValue4'];   // dateTo for inRange cond 2
+
+    if (!op1) return null;
+
+    const cond1 = this.buildDateCondition(op1, val1, val2);
+    if (!cond1) return null;
+
+    if (op2 && concatOp) {
+      const cond2 = this.buildDateCondition(op2, val3, val4);
+      return cond2
+        ? { filterType: 'date', operator: concatOp, conditions: [cond1, cond2] }
+        : cond1;
+    }
+    return cond1;
   }
 
-  private spDateOperatorToAgType(op: string): string {
-    const map: Record<string, string> = {
-      eq: 'equals', ne: 'notEqual',
-      gt: 'greaterThan', gte: 'greaterThanOrEqual',
-      lt: 'lessThan', lte: 'lessThanOrEqual',
-    };
-    return map[op] ?? 'equals';
+  private buildDateCondition(op: string, dateFrom?: string, dateTo?: string): Record<string, any> | null {
+    if (op === 'blank' || op === 'notBlank') {
+      return { filterType: 'date', type: op, dateFrom: null, dateTo: null };
+    }
+    if (!dateFrom) return null;
+    return { filterType: 'date', type: op, dateFrom, dateTo: dateTo ?? null };
+  }
+
+  private applyDateFilterParams(p: StudentGridRequest, fm: any): void {
+    if (fm.conditions) {
+      const [c1, c2] = fm.conditions;
+      this.applyDateConditionToRequest(p, c1, '1', '2');
+      this.applyDateConditionToRequest(p, c2, '3', '4');
+      p.startDateFilterConcatOperator = fm.operator;
+      p.startDateOperator2 = c2.type;
+    } else {
+      this.applyDateConditionToRequest(p, fm, '1', '2');
+    }
+  }
+
+  private applyDateConditionToRequest(
+    p: StudentGridRequest, cond: any, fromKey: string, toKey: string
+  ): void {
+    const opKey = fromKey === '1' ? 'startDateOperator1' : 'startDateOperator2';
+    (p as any)[opKey] = cond.type;
+    if (cond.type !== 'blank' && cond.type !== 'notBlank') {
+      (p as any)[`startDateValue${fromKey}`] = cond.dateFrom ?? null;
+      if (cond.type === 'inRange') {
+        (p as any)[`startDateValue${toKey}`] = cond.dateTo ?? null;
+      }
+    }
   }
 
   private syncUrl(request: StudentGridRequest): void {
@@ -374,8 +405,13 @@ export class StudentListPage {
       ssnValue2:                    request.ssnValue2                    ?? null,
       ssnOperator2:                 request.ssnOperator2                 ?? null,
       ssnFilterConcatOperator:       request.ssnFilterConcatOperator       ?? null,
-      startDate:           request.startDate           ?? null,
-      startDateOperator:   request.startDateOperator   ?? null,
+      startDateOperator1:               request.startDateOperator1               ?? null,
+      startDateValue1:                  request.startDateValue1                  ?? null,
+      startDateValue2:                  request.startDateValue2                  ?? null,
+      startDateFilterConcatOperator:    request.startDateFilterConcatOperator    ?? null,
+      startDateOperator2:               request.startDateOperator2               ?? null,
+      startDateValue3:                  request.startDateValue3                  ?? null,
+      startDateValue4:                  request.startDateValue4                  ?? null,
       isActive:            request.isActive !== null && request.isActive !== undefined
                              ? String(request.isActive) : null,
     };

@@ -31,9 +31,13 @@ export interface StudentGridRequest extends GridRequest {
   ssnOperator2?: string | null;
   ssnFilterConcatOperator?: string | null;
 
-  /** ISO date string, e.g. '2024-01-15' */
-  startDate?: string | null;
-  startDateOperator?: string | null;
+  startDateOperator1?: string | null;
+  startDateValue1?: string | null;
+  startDateValue2?: string | null;
+  startDateFilterConcatOperator?: string | null;
+  startDateOperator2?: string | null;
+  startDateValue3?: string | null;
+  startDateValue4?: string | null;
 
   isActive?: boolean | null;
 }

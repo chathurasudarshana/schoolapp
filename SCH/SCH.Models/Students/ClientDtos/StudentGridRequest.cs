@@ -34,9 +34,13 @@ namespace SCH.Models.Students.ClientDtos
         public string? SSNOperator2 { get; set; }
         public string? SSNFilterConcatOperator { get; set; }
 
-        /// <summary>ISO date string, e.g. "2024-01-15"</summary>
-        public string? StartDate { get; set; }
-        public string? StartDateOperator { get; set; }
+        public string? StartDateOperator1 { get; set; }
+        public string? StartDateValue1 { get; set; }
+        public string? StartDateValue2 { get; set; }
+        public string? StartDateFilterConcatOperator { get; set; }
+        public string? StartDateOperator2 { get; set; }
+        public string? StartDateValue3 { get; set; }
+        public string? StartDateValue4 { get; set; }
 
         public bool? IsActive { get; set; }
     }

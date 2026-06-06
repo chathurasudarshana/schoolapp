@@ -98,8 +98,13 @@ namespace SCH.Repositories.Students
                 new("@SSNValue2",                     (object?)request.SSNValue2                     ?? DBNull.Value),
                 new("@SSNOperator2",                   (object?)request.SSNOperator2                   ?? DBNull.Value),
                 new("@SSNFilterConcatOperator",        (object?)request.SSNFilterConcatOperator        ?? DBNull.Value),
-                new("@StartDate",           (object?)request.StartDate           ?? DBNull.Value),
-                new("@StartDateOperator",   (object?)request.StartDateOperator   ?? DBNull.Value),
+                new("@StartDateOperator1",              (object?)request.StartDateOperator1             ?? DBNull.Value),
+                new("@StartDateValue1",                 (object?)request.StartDateValue1                ?? DBNull.Value),
+                new("@StartDateValue2",                 (object?)request.StartDateValue2                ?? DBNull.Value),
+                new("@StartDateFilterConcatOperator",   (object?)request.StartDateFilterConcatOperator  ?? DBNull.Value),
+                new("@StartDateOperator2",              (object?)request.StartDateOperator2             ?? DBNull.Value),
+                new("@StartDateValue3",                 (object?)request.StartDateValue3                ?? DBNull.Value),
+                new("@StartDateValue4",                 (object?)request.StartDateValue4                ?? DBNull.Value),
                 new("@IsActive",            (object?)request.IsActive            ?? DBNull.Value),
             };
 
@@ -111,7 +116,8 @@ namespace SCH.Repositories.Students
                     " @EmailValue1, @EmailOperator1, @EmailValue2, @EmailOperator2, @EmailFilterConcatOperator," +
                     " @PhoneNumberValue1, @PhoneNumberOperator1, @PhoneNumberValue2, @PhoneNumberOperator2, @PhoneNumberFilterConcatOperator," +
                     " @SSNValue1, @SSNOperator1, @SSNValue2, @SSNOperator2, @SSNFilterConcatOperator," +
-                    " @StartDate, @StartDateOperator, @IsActive",
+                    " @StartDateOperator1, @StartDateValue1, @StartDateValue2, @StartDateFilterConcatOperator, @StartDateOperator2, @StartDateValue3, @StartDateValue4," +
+                    " @IsActive",
                     parameters)
                 .ToListAsync();
 
