@@ -1,6 +1,6 @@
-﻿<header class="sch-header" [class.sidenav-collapsed]="isCollapsed()">
+﻿<header class="sch-header" [class.sidenav-collapsed]="isCollapsed()" [style.background]="headerHighlighted() ? 'red' : ''">
   <div class="header-content">
-    <div class="header-left">
+    <div class="header-left" [highlight]="'blue'" (highlighted)="onHeaderHighlight($event)">
       <h1 class="app-title">School Management System</h1>
     </div>
     @if (isAuthenticated()) {
