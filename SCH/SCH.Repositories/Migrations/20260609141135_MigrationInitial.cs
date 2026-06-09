@@ -91,6 +91,7 @@ namespace SCH.Repositories.Migrations
                     Image = table.Column<string>(type: "nvarchar(400)", nullable: true),
                     StartDate = table.Column<DateTime>(type: "date", nullable: true),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: true),
                     CreatedBy = table.Column<int>(type: "int", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ModifiedBy = table.Column<int>(type: "int", nullable: true),
@@ -112,6 +113,13 @@ namespace SCH.Repositories.Migrations
                         principalSchema: "dbo",
                         principalTable: "User",
                         principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Student_User_UserId",
+                        column: x => x.UserId,
+                        principalSchema: "dbo",
+                        principalTable: "User",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -122,6 +130,7 @@ namespace SCH.Repositories.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(400)", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: true),
                     CreatedBy = table.Column<int>(type: "int", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ModifiedBy = table.Column<int>(type: "int", nullable: true),
@@ -143,6 +152,13 @@ namespace SCH.Repositories.Migrations
                         principalSchema: "dbo",
                         principalTable: "User",
                         principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Teacher_User_UserId",
+                        column: x => x.UserId,
+                        principalSchema: "dbo",
+                        principalTable: "User",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -215,6 +231,14 @@ namespace SCH.Repositories.Migrations
                 column: "ModifiedBy");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Student_UserId",
+                schema: "dbo",
+                table: "Student",
+                column: "UserId",
+                unique: true,
+                filter: "[UserId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_StudentCourseMap_CourseId",
                 schema: "dbo",
                 table: "StudentCourseMap",
@@ -243,6 +267,14 @@ namespace SCH.Repositories.Migrations
                 schema: "dbo",
                 table: "Teacher",
                 column: "ModifiedBy");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Teacher_UserId",
+                schema: "dbo",
+                table: "Teacher",
+                column: "UserId",
+                unique: true,
+                filter: "[UserId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_User_CreatedBy",

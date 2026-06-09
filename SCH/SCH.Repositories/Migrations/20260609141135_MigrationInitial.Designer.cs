@@ -12,8 +12,8 @@ using SCH.Repositories.DbContexts;
 namespace SCH.Repositories.Migrations
 {
     [DbContext(typeof(SCHContext))]
-    [Migration("20260607100258_AddUserIdToStudentTeacher")]
-    partial class AddUserIdToStudentTeacher
+    [Migration("20260609141135_MigrationInitial")]
+    partial class MigrationInitial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -55,15 +55,30 @@ The API targets `(localdb)\MSSQLLocalDB`, database `SCH`. Apply migrations befor
 
 ```powershell
 # Domain context (dbo schema)
-dotnet ef migrations add Init --context SCHContext --output-dir Migrations `
-  --project SCH\SCH.Repositories\SCH.Repositories.csproj `
-  --startup-project SCH\SCH.Repositories\SCH.Repositories.csproj
+dotnet ef migrations add MigrationInitial --context SCHContext --output-dir Migrations --project SCH\SCH.Repositories\SCH.Repositories.csproj --startup-project SCH\SCH.Repositories\SCH.Repositories.csproj
 
 # Identity context (identity schema)
-dotnet ef migrations add Init --context IdentityContext --output-dir Migrations/Identity `
-  --project SCH\SCH.Repositories\SCH.Repositories.csproj `
-  --startup-project SCH\SCH.Repositories\SCH.Repositories.csproj
+dotnet ef migrations add MigrationInitial --context IdentityContext --output-dir Migrations/Identity --project SCH\SCH.Repositories\SCH.Repositories.csproj --startup-project SCH\SCH.Repositories\SCH.Repositories.csproj
+
 ```
+
+``` powershell
+# Package Manager Console (Visual Studio — set Default project to SCH.Repositories)
+# Domain context (dbo schema)
+dotnet ef migrations add MigrationInitial --context SCHContext --output-dir Migrations --project SCH.Repositories\SCH.Repositories.csproj --startup-project SCH.Repositories\SCH.Repositories.csproj
+
+Add-Migration <Name> -Context SCHContext -OutputDir Migrations -StartupProject SCH.Repositories
+Update-Database -Context SCHContext -StartupProject SCH.Repositories
+
+# Identity context (identity schema)
+dotnet ef migrations add MigrationInitial --context IdentityContext --output-dir Migrations/Identity --project SCH\SCH.Repositories\SCH.Repositories.csproj --startup-project SCH.Repositories\SCH.Repositories.csproj
+
+Add-Migration <Name> -Context IdentityContext -OutputDir Migrations/Identity -StartupProject SCH.Repositories
+Update-Database -Context IdentityContext -StartupProject SCH.Repositories
+
+
+```
+
 
 See `MIGRATION_GUIDE.md` for the full runbook.
 
