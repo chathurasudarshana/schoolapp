@@ -6,6 +6,8 @@ namespace SCH.Models.Teachers.ClientDtos
 
         public required string Name { get; set; }
 
+        public int? UserId { get; set; }
+
         /// <summary>
         /// Row version for optimistic concurrency control
         /// Must be sent back when updating to detect concurrent modifications

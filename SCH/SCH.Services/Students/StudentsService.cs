@@ -1,6 +1,8 @@
 namespace SCH.Services.Students
 {
     using AutoMapper;
+    using Microsoft.AspNetCore.Identity;
+    using SCH.Models.Auth.Entities;
     using SCH.Models.Common.GridEntities;
     using SCH.Models.Courses.Entities;
     using SCH.Models.StudentCourseMap.ClientDtos;
@@ -11,6 +13,7 @@ namespace SCH.Services.Students
     using SCH.Repositories.StudentCourseMap;
     using SCH.Repositories.Students;
     using SCH.Repositories.UnitOfWork;
+    using SCH.Services.Auth;
     using SCH.Shared.Exceptions;
     using System;
 
@@ -20,6 +23,8 @@ namespace SCH.Services.Students
         private readonly IStudentsRepository studentsRepository;
         private readonly ICoursesRepository coursesRepository;
         private readonly IStudentCourseMapRepository studentCourseMapRepository;
+        private readonly UserManager<ApplicationUser> userManager;
+        private readonly IAuthService authService;
         private readonly IMapper mapper;
 
 
@@ -28,12 +33,16 @@ namespace SCH.Services.Students
             IStudentsRepository studentsRepository,
             ICoursesRepository coursesRepository,
             IStudentCourseMapRepository studentCourseMapRepository,
+            UserManager<ApplicationUser> userManager,
+            IAuthService authService,
             IMapper mapper) 
         { 
             this.unitOfWork = unitOfWork;
             this.studentsRepository = studentsRepository;
             this.coursesRepository = coursesRepository;
             this.studentCourseMapRepository = studentCourseMapRepository;
+            this.userManager = userManager;
+            this.authService = authService;
             this.mapper = mapper;
         }
 
@@ -72,6 +81,7 @@ namespace SCH.Services.Students
                 PhoneNumber = student.PhoneNumber,
                 SSN = student.SSN,
                 StartDate = student.StartDate,
+                UserId = student.UserId,
                 StudentCourseMaps = student.Courses
                     .Select(c => new StudentCourseMap
                     {
@@ -82,6 +92,12 @@ namespace SCH.Services.Students
 
             await studentsRepository.InsertStudentAsync(studentEntity);
             await unitOfWork.SaveChangesAsync();
+
+            // If a UserId is linked, assign the Student role
+            if (student.UserId.HasValue)
+            {
+                await AssignStudentRoleAsync(student.UserId.Value);
+            }
 
             return studentEntity.Id;
         }
@@ -98,6 +114,9 @@ namespace SCH.Services.Students
 
             await ValidateCourses(student);
 
+            int? oldUserId = studentEntity.UserId;
+            int? newUserId = student.UserId;
+
             studentEntity.FirstName = student.FirstName;
             studentEntity.LastName = student.LastName;
             studentEntity.Email = student.Email;
@@ -106,6 +125,7 @@ namespace SCH.Services.Students
             studentEntity.PhoneNumber = student.PhoneNumber;
             studentEntity.SSN = student.SSN;
             studentEntity.StartDate = student.StartDate;
+            studentEntity.UserId = newUserId;
 
             // Include RowVersion from frontend for concurrency check
             studentEntity.RowVersion = student.RowVersion ?? studentEntity.RowVersion;
@@ -140,6 +160,21 @@ namespace SCH.Services.Students
             // Repository handles concurrency check
             studentsRepository.UpdateAsync(studentEntity);
             await unitOfWork.SaveChangesAsync();
+
+            // Handle UserId change: manage roles and revoke stale sessions
+            if (oldUserId != newUserId)
+            {
+                if (oldUserId.HasValue)
+                {
+                    await RemoveStudentRoleAsync(oldUserId.Value);
+                    await authService.RevokeAllUserSessionsAsync(oldUserId.Value);
+                }
+                if (newUserId.HasValue)
+                {
+                    await AssignStudentRoleAsync(newUserId.Value);
+                }
+
+            }
         }
 
         public async Task DeleteStudentAsync(int id)
@@ -240,5 +275,24 @@ namespace SCH.Services.Students
             }
         }
 
+        private async Task AssignStudentRoleAsync(int userId)
+        {
+            var user = await userManager.FindByIdAsync(userId.ToString());
+            if (user != null && !await userManager.IsInRoleAsync(user, "Student"))
+            {
+                await userManager.AddToRoleAsync(user, "Student");
+            }
+
+        }
+
+        private async Task RemoveStudentRoleAsync(int userId)
+        {
+            var user = await userManager.FindByIdAsync(userId.ToString());
+            if (user != null && await userManager.IsInRoleAsync(user, "Student")) 
+            {
+                await userManager.RemoveFromRoleAsync(user, "Student");
+            }
+
+        }
     }
 }

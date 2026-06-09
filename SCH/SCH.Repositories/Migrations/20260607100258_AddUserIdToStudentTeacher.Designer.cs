@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SCH.Repositories.DbContexts;
 
@@ -11,9 +12,11 @@ using SCH.Repositories.DbContexts;
 namespace SCH.Repositories.Migrations
 {
     [DbContext(typeof(SCHContext))]
-    partial class SCHContextModelSnapshot : ModelSnapshot
+    [Migration("20260607100258_AddUserIdToStudentTeacher")]
+    partial class AddUserIdToStudentTeacher
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

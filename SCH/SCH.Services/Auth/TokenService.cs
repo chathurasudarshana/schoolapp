@@ -36,7 +36,10 @@ namespace SCH.Services.Auth
             int userId,
             string username,
             string email,
-            IList<string> roles)
+            IList<string> roles,
+            IList<string>? permissions = null,
+            int? ownStudentId = null,
+            int? ownTeacherId = null)
         {
             var tokenId = Guid.NewGuid().ToString();
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
@@ -58,6 +61,28 @@ namespace SCH.Services.Auth
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
+
+            // Add deduplicated permission claims
+            if (permissions != null)
+            {
+                foreach (var permission in permissions.Distinct())
+                {
+                    claims.Add(new Claim("permission", permission));
+                }
+            }
+
+            // Add own-record claims so frontend/backend can enforce record-level access
+            if (ownStudentId.HasValue)
+            {
+                claims.Add(new Claim("own_student_id", ownStudentId.Value.ToString()));
+            }
+
+
+            if (ownTeacherId.HasValue)
+            {
+                claims.Add(new Claim("own_teacher_id", ownTeacherId.Value.ToString()));
+            }
+
 
             var token = new JwtSecurityToken(
                 issuer: _issuer,

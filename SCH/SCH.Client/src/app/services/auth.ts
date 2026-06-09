@@ -8,6 +8,7 @@ import { RegisterRequest } from '../interfaces/register-request';
 import { Observable, tap, catchError, throwError } from 'rxjs';
 import { APP_CONFIG } from '../injection-tokens/app-config.token';
 import { LogoutScope } from '../enums/logout-scope';
+import { Policy } from '../enums/policy';
 
 /**
  * Authentication service that manages user state, tokens, and auth logic
@@ -49,6 +50,15 @@ export class Auth {
   );
   public readonly isBasic = computed(() =>
     this.currentUser()?.roles.includes('Basic') ?? false
+  );
+  public readonly permissions = computed(() =>
+    this.currentUser()?.permissions ?? []
+  );
+  public readonly ownStudentId = computed(() =>
+    this.currentUser()?.ownStudentId ?? null
+  );
+  public readonly ownTeacherId = computed(() =>
+    this.currentUser()?.ownTeacherId ?? null
   );
 
   constructor() {
@@ -411,6 +421,55 @@ export class Auth {
   public hasAnyRole(roles: string[]): boolean {
     const userRoles = this.currentUser()?.roles ?? [];
     return roles.some((role) => userRoles.includes(role));
+  }
+
+  /**
+   * Check if user has a specific permission claim
+   */
+  public hasPermission(permission: string): boolean {
+    return this.permissions().includes(permission);
+  }
+
+  /**
+   * Evaluate a named policy against the current user's roles and permissions.
+   * Mirrors the backend policy definitions in AuthorizationExtensions.cs.
+   */
+  public hasPolicy(policy: Policy): boolean {
+    const isAdmin = this.isAdmin();
+    if (isAdmin) return true;
+
+    const perms = this.permissions();
+
+    switch (policy) {
+      case Policy.ViewStudents:
+        return perms.includes('students:read');
+      case Policy.AddStudents:
+        return perms.includes('students:add');
+      case Policy.EditStudents:
+        return perms.includes('students:write') || perms.includes('students:write-own');
+      case Policy.EditOwnStudent:
+        return perms.includes('students:write') || perms.includes('students:write-own');
+      case Policy.DeleteStudents:
+        return perms.includes('students:write');
+      case Policy.ViewTeachers:
+        return perms.includes('teachers:read');
+      case Policy.EditTeachers:
+        return perms.includes('teachers:write') || perms.includes('teachers:write-own');
+      case Policy.EditOwnTeacher:
+        return perms.includes('teachers:write') || perms.includes('teachers:write-own');
+      case Policy.DeleteTeachers:
+        return perms.includes('teachers:write');
+      case Policy.ViewCourses:
+        return perms.includes('courses:read');
+      case Policy.AddCourses:
+        return perms.includes('courses:add');
+      case Policy.EditCourses:
+        return perms.includes('courses:write');
+      case Policy.DeleteCourses:
+        return perms.includes('courses:write');
+      default:
+        return false;
+    }
   }
 
   /**

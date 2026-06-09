@@ -12,10 +12,13 @@
     [CreatedDate]  DATETIME2 (7)  NOT NULL,
     [ModifiedBy]   INT            NULL,
     [ModifiedDate] DATETIME2 (7)  NULL,
+    [UserId]       INT            NULL,
     [RowVersion]   ROWVERSION     NOT NULL,
     CONSTRAINT [PK_Student] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [FK_Student_User_CreatedBy] FOREIGN KEY ([CreatedBy]) REFERENCES [dbo].[User] ([Id]),
-    CONSTRAINT [FK_Student_User_ModifiedBy] FOREIGN KEY ([ModifiedBy]) REFERENCES [dbo].[User] ([Id])
+    CONSTRAINT [FK_Student_User_ModifiedBy] FOREIGN KEY ([ModifiedBy]) REFERENCES [dbo].[User] ([Id]),
+    CONSTRAINT [FK_Student_User_UserId] FOREIGN KEY ([UserId]) REFERENCES [dbo].[User] ([Id]),
+    CONSTRAINT [UQ_Student_UserId] UNIQUE ([UserId])
 );
 
 
@@ -29,4 +32,9 @@ CREATE NONCLUSTERED INDEX [IX_Student_ModifiedBy]
 GO
 CREATE NONCLUSTERED INDEX [IX_Student_CreatedBy]
     ON [dbo].[Student]([CreatedBy] ASC);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Student_UserId]
+    ON [dbo].[Student]([UserId] ASC);
 

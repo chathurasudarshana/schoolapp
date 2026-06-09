@@ -22,6 +22,8 @@ namespace SCH.Models.Students.ClientDtos
 
         public bool IsActive { get; set; }
 
+        public int? UserId { get; set; }
+
         public List<StudentCourseMapDto> Courses { get; set; } 
             = new List<StudentCourseMapDto>();
 

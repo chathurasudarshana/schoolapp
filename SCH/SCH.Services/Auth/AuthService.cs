@@ -7,6 +7,8 @@ namespace SCH.Services.Auth
     using SCH.Models.Auth.Enums;
     using SCH.Models.Users.Entities;
     using SCH.Repositories.Auth;
+    using SCH.Repositories.Students;
+    using SCH.Repositories.Teachers;
     using SCH.Repositories.UnitOfWork;
     using SCH.Repositories.Users;
     using SCH.Shared.Exceptions;
@@ -25,6 +27,8 @@ namespace SCH.Services.Auth
         private readonly ITokenService _tokenService;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IStudentsRepository _studentsRepository;
+        private readonly ITeachersRepository _teachersRepository;
         private readonly IIdentityUnitOfWork _identityUnitOfWork;
         private readonly ISCHUnitOfWork _schUnitOfWork;
         private readonly IConfiguration _configuration;
@@ -37,6 +41,8 @@ namespace SCH.Services.Auth
             ITokenService tokenService,
             IRefreshTokenRepository refreshTokenRepository,
             IUserRepository userRepository,
+            IStudentsRepository studentsRepository,
+            ITeachersRepository teachersRepository,
             IIdentityUnitOfWork identityUnitOfWork,
             ISCHUnitOfWork schUnitOfWork,
             IConfiguration configuration,
@@ -48,6 +54,8 @@ namespace SCH.Services.Auth
             _tokenService = tokenService;
             _refreshTokenRepository = refreshTokenRepository;
             _userRepository = userRepository;
+            _studentsRepository = studentsRepository;
+            _teachersRepository = teachersRepository;
             _identityUnitOfWork = identityUnitOfWork;
             _schUnitOfWork = schUnitOfWork;
             _configuration = configuration;
@@ -101,8 +109,9 @@ namespace SCH.Services.Auth
 
             // Generate tokens
             var roles = await _userManager.GetRolesAsync(user);
+            var (permissions, ownStudentId, ownTeacherId) = await BuildUserContextAsync(user.Id, roles);
             var (accessToken, tokenId) = await _tokenService.GenerateAccessTokenAsync(
-                user.Id, user.UserName!, user.Email!, roles);
+                user.Id, user.UserName!, user.Email!, roles, permissions, ownStudentId, ownTeacherId);
             var refreshToken = _tokenService.GenerateRefreshToken();
 
             // Store refresh token
@@ -163,6 +172,9 @@ namespace SCH.Services.Auth
                     LastName = user.LastName,
                     FullName = user.FullName,
                     Roles = roles.ToList(),
+                    Permissions = permissions,
+                    OwnStudentId = ownStudentId,
+                    OwnTeacherId = ownTeacherId,
                     IsActive = user.IsActive,
                     CreatedDate = user.CreatedDate,
                     LastLoginDate = user.LastLoginDate,
@@ -343,8 +355,9 @@ namespace SCH.Services.Auth
             // Generate new tokens
             var user = storedToken.User;
             var roles = await _userManager.GetRolesAsync(user);
+            var (permissions, ownStudentId, ownTeacherId) = await BuildUserContextAsync(user.Id, roles);
             var (newAccessToken, newTokenId) = await _tokenService.GenerateAccessTokenAsync(
-                user.Id, user.UserName!, user.Email!, roles);
+                user.Id, user.UserName!, user.Email!, roles, permissions, ownStudentId, ownTeacherId);
             var newRefreshToken = _tokenService.GenerateRefreshToken();
 
             // Store new refresh token
@@ -386,6 +399,9 @@ namespace SCH.Services.Auth
                     LastName = user.LastName,
                     FullName = user.FullName,
                     Roles = roles.ToList(),
+                    Permissions = permissions,
+                    OwnStudentId = ownStudentId,
+                    OwnTeacherId = ownTeacherId,
                     IsActive = user.IsActive,
                     CreatedDate = user.CreatedDate,
                     LastLoginDate = user.LastLoginDate,
@@ -604,6 +620,74 @@ namespace SCH.Services.Auth
                 return "Edge Browser";
 
             return "Unknown Device";
+        }
+
+        /// <summary>
+        /// Builds the user's merged permission list and own-record IDs.
+        /// Collects claims from all assigned roles (AspNetRoleClaims) and direct user claims (AspNetUserClaims).
+        /// Also queries Student/Teacher tables for records linked to this user.
+        /// </summary>
+        private async Task<(List<string> Permissions, int? OwnStudentId, int? OwnTeacherId)> BuildUserContextAsync(
+            int userId,
+            IList<string> roles)
+        {
+            var permissions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            // Collect role claims
+            foreach (var roleName in roles)
+            {
+                var role = await _roleManager.FindByNameAsync(roleName);
+                if (role != null)
+                {
+                    var roleClaims = await _roleManager.GetClaimsAsync(role);
+                    foreach (var claim in roleClaims.Where(c => c.Type == "permission"))
+                    {
+                        permissions.Add(claim.Value);
+                    }
+
+                }
+            }
+
+            // Collect direct user claims
+            var appUser = await _userManager.FindByIdAsync(userId.ToString());
+            if (appUser != null)
+            {
+                var userClaims = await _userManager.GetClaimsAsync(appUser);
+                foreach (var claim in userClaims.Where(c => c.Type == "permission"))
+                {
+                    permissions.Add(claim.Value);
+                }
+
+            }
+
+            // Resolve own-record IDs
+            var ownStudent = await _studentsRepository.GetStudentByUserIdAsync(userId);
+            var ownTeacher = await _teachersRepository.GetTeacherByUserIdAsync(userId);
+
+            return (permissions.ToList(), ownStudent?.Id, ownTeacher?.Id);
+        }
+
+        /// <summary>
+        /// Revokes all active refresh tokens for a user (called when UserId is removed from a Student/Teacher record).
+        /// This forces the user to re-login, generating a fresh JWT without stale own-record claims.
+        /// </summary>
+        public async Task RevokeAllUserSessionsAsync(int userId)
+        {
+            var tokens = await _refreshTokenRepository.GetNonRevokedTokensByUserIdAsync(userId);
+
+            if (tokens.Any())
+            {
+                foreach (var token in tokens)
+                {
+                    token.IsRevoked = true;
+                    token.RevokedDate = DateTime.UtcNow;
+                }
+
+                _refreshTokenRepository.UpdateRange(tokens);
+                await _identityUnitOfWork.SaveChangesAsync();
+
+                _logger.Info($"Revoked {tokens.Count} sessions for user {userId} due to UserId unlink");
+            }
         }
     }
 }

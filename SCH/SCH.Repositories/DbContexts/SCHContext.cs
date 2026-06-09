@@ -96,6 +96,14 @@ namespace SCH.Repositories.DbContexts
                 entity.Property(e => e.RowVersion)
                     .IsRowVersion()
                     .IsConcurrencyToken();
+
+                // UserId: links the identity user who owns this student record
+                entity.Property(e => e.UserId).IsRequired(false);
+                entity.HasOne<User>()
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.SetNull);
+                entity.HasIndex(e => e.UserId).IsUnique();
             });
 
             // Configure Course entity
@@ -142,6 +150,14 @@ namespace SCH.Repositories.DbContexts
                 entity.Property(e => e.RowVersion)
                     .IsRowVersion()
                     .IsConcurrencyToken();
+
+                // UserId: links the identity user who owns this teacher record
+                entity.Property(e => e.UserId).IsRequired(false);
+                entity.HasOne<User>()
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.SetNull);
+                entity.HasIndex(e => e.UserId).IsUnique();
             });
 
             // Configure StudentCourseMap entity

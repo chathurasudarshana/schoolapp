@@ -8,6 +8,7 @@ export interface Student {
     image: string | null;
     startDate: Date | null;
     isActive: boolean;
+    userId?: number | null;
     
     /**
      * Row version for optimistic concurrency control

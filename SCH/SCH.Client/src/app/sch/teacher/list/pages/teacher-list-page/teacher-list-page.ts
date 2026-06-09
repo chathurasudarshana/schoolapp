@@ -1,4 +1,4 @@
-import { Component, Inject, signal } from '@angular/core';
+import { Component, Inject, inject, signal } from '@angular/core';
 import { AgGridAngular } from 'ag-grid-angular';
 import {
   AllCommunityModule,
@@ -14,17 +14,22 @@ import { Notification } from '../../../../../services/notification';
 import { ConfirmDialog } from '../../../../../selectors/confirm-dialog/confirm-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { TeacherApi } from '../../../../../sch/services/teacher-api';
+import { Auth } from '../../../../../services/auth';
+import { Policy } from '../../../../../enums/policy';
+import { HasPolicy } from '../../../../../directives/has-policy.directive';
 
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 @Component({
   selector: 'sch-teacher-list-page',
-  imports: [AgGridAngular],
+  imports: [AgGridAngular, HasPolicy],
   templateUrl: './teacher-list-page.html',
   styleUrl: './teacher-list-page.scss'
 })
 export class TeacherListPage {
+  protected readonly auth = inject(Auth);
+  protected readonly Policy = Policy;
 
   protected readonly columnDefs: ColDef<
     Teacher,
@@ -45,10 +50,19 @@ export class TeacherListPage {
       {
         headerName: 'Actions',
         cellRenderer: (params: any) => {
-          return `
-      <button type="button" class="edit-btn" data-action="edit">Edit</button>
-      <button type="button" class="delete-btn" data-action="delete">Delete</button>
-    `;
+          const teacher: Teacher = params.data;
+          const canEdit = this.auth.hasPolicy(Policy.EditTeachers) ||
+            (this.auth.hasPolicy(Policy.EditOwnTeacher) &&
+              teacher?.id === this.auth.ownTeacherId());
+          const canDelete = this.auth.hasPolicy(Policy.DeleteTeachers);
+
+          const editBtn = canEdit
+            ? `<button type="button" class="edit-btn" data-action="edit">Edit</button>`
+            : '';
+          const deleteBtn = canDelete
+            ? `<button type="button" class="delete-btn" data-action="delete">Delete</button>`
+            : '';
+          return `${editBtn}${deleteBtn}`;
         },
         width: 200,
         suppressMovable: true,

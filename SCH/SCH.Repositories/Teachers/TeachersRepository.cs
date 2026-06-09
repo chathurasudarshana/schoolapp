@@ -31,6 +31,14 @@ namespace SCH.Repositories.Teachers
             return teacher;
         }
 
+        public async Task<Teacher?> GetTeacherByUserIdAsync(int userId)
+        {
+            return await Context
+                .Teacher
+                .AsNoTracking()
+                .SingleOrDefaultAsync(t => t.UserId == userId);
+        }
+
         public async Task InsertTeacherAsync(Teacher teacher)
         {
             await Context.Teacher.AddAsync(teacher);

@@ -1,4 +1,4 @@
-import { Component, Inject, signal } from '@angular/core';
+import { Component, Inject, inject, signal } from '@angular/core';
 import { AgGridAngular } from 'ag-grid-angular';
 import {
   AllCommunityModule,
@@ -14,17 +14,22 @@ import { Notification } from '../../../../../services/notification';
 import { ConfirmDialog } from '../../../../../selectors/confirm-dialog/confirm-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { CourseApi } from '../../../../../sch/services/course-api';
+import { Auth } from '../../../../../services/auth';
+import { Policy } from '../../../../../enums/policy';
+import { HasPolicy } from '../../../../../directives/has-policy.directive';
 
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 @Component({
   selector: 'sch-course-list-page',
-  imports: [AgGridAngular],
+  imports: [AgGridAngular, HasPolicy],
   templateUrl: './course-list-page.html',
   styleUrl: './course-list-page.scss'
 })
 export class CourseListPage {
+  protected readonly auth = inject(Auth);
+  protected readonly Policy = Policy;
 
   protected readonly columnDefs: ColDef<
     Course,
@@ -45,10 +50,16 @@ export class CourseListPage {
       {
         headerName: 'Actions',
         cellRenderer: (params: any) => {
-          return `
-      <button type="button" class="edit-btn" data-action="edit">Edit</button>
-      <button type="button" class="delete-btn" data-action="delete">Delete</button>
-    `;
+          const canEdit = this.auth.hasPolicy(Policy.EditCourses);
+          const canDelete = this.auth.hasPolicy(Policy.DeleteCourses);
+
+          const editBtn = canEdit
+            ? `<button type="button" class="edit-btn" data-action="edit">Edit</button>`
+            : '';
+          const deleteBtn = canDelete
+            ? `<button type="button" class="delete-btn" data-action="delete">Delete</button>`
+            : '';
+          return `${editBtn}${deleteBtn}`;
         },
         width: 200,
         suppressMovable: true,

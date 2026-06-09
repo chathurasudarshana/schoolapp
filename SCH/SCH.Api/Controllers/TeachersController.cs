@@ -1,16 +1,17 @@
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+﻿// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace SCH.API.Controllers
 {
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
+    using SCH.API.Authorization;
     using SCH.Models.Teachers.ClientDtos;
     using SCH.Services.Teachers;
     using SCH.Shared.Exceptions;
 
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // Require authentication for all endpoints
+    [Authorize]
     public class TeachersController : ControllerBase
     {
         private readonly ITeachersService teachersService;
@@ -22,6 +23,7 @@ namespace SCH.API.Controllers
 
         // GET: api/<TeachersController>
         [HttpGet]
+        [Authorize(Policy = PolicyNames.ViewTeachers)]
         public async Task<IActionResult> GetTeacherAsync()
         {
             List<TeacherDto> teachers = await teachersService
@@ -32,6 +34,7 @@ namespace SCH.API.Controllers
 
         // GET api/<TeachersController>/5
         [HttpGet("{id}")]
+        [Authorize(Policy = PolicyNames.ViewTeachers)]
         public async Task<IActionResult> GetTeacherAsync(int id)
         {
             IActionResult actionResult;
@@ -57,6 +60,7 @@ namespace SCH.API.Controllers
 
         // POST api/<TeachersController>
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> PostTeacherAsync([FromBody] TeacherDto teacher)
         {
             int id = await teachersService
@@ -65,8 +69,9 @@ namespace SCH.API.Controllers
             return Ok(id);
         }
 
-        // PUT api/<TeachersController>/5
+        // PATCH api/<TeachersController>/5
         [HttpPatch("{id}")]
+        [Authorize(Policy = PolicyNames.EditTeachers)]
         public async Task<IActionResult> PatchTeacherAsync(int id, [FromBody] TeacherDto teacher)
         {
             if (id < 1)
@@ -83,6 +88,7 @@ namespace SCH.API.Controllers
 
         // DELETE api/<TeachersController>/5
         [HttpDelete("{id}")]
+        [Authorize(Policy = PolicyNames.DeleteTeachers)]
         public async Task<IActionResult> Delete(int id)
         {
             if (id < 1)
@@ -97,5 +103,3 @@ namespace SCH.API.Controllers
         }
     }
 }
-
-

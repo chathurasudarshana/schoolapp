@@ -1,5 +1,6 @@
 using Microsoft.OpenApi.Models;
 using NLog.Extensions.Logging;
+using SCH.API.Authorization;
 using SCH.Core.Cors;
 using SCH.Core.Extensions;
 using SCH.Core.ErrorHandling;
@@ -27,6 +28,7 @@ builder.Services.AddDbContexts(connectionString, connectionString);
 
 builder.Services.AddUnitOfWorks();
 builder.Services.AddAuthenticationWithJwt(builder.Configuration);
+builder.Services.AddSchoolAppPolicies();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddNLog("nlog.config");

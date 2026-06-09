@@ -1,5 +1,7 @@
 import { Routes } from '@angular/router';
 import { studentDetailRoutes } from './detail/student-detail.routes';
+import { policyGuard } from '../../guards';
+import { Policy } from '../../enums/policy';
 
 export const studentRoutes: Routes = [
   {
@@ -13,6 +15,8 @@ export const studentRoutes: Routes = [
       import('./list/pages/student-list-page/student-list-page').then(
         (m) => m.StudentListPage
       ),
+    canActivate: [policyGuard],
+    data: { policy: Policy.ViewStudents },
   },
   {
     path: 'detail/:id',

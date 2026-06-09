@@ -1,6 +1,7 @@
 export interface Teacher {
     id: number;
     name: string;
+    userId?: number | null;
     
     /**
      * Row version for optimistic concurrency control

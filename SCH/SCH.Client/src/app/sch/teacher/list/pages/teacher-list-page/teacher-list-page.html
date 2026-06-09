@@ -1,9 +1,12 @@
+@if (auth.isAdmin()) {
 <button
     (click)="onAdd()"
     [disabled]="gridDataLoading() || isDeleting()"
 >Add</button>
+}
 
 <button
+    *hasPolicy="Policy.DeleteTeachers"
     (click)="onRemoveAll()"
     [disabled]="gridDataLoading() || isDeleting() || rowData().length === 0"
 >Remove All</button>

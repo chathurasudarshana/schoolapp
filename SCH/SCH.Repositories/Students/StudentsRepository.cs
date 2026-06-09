@@ -43,6 +43,14 @@ namespace SCH.Repositories.Students
             return student;
         }
 
+        public async Task<Student?> GetStudentByUserIdAsync(int userId)
+        {
+            return await Context
+                .Student
+                .AsNoTracking()
+                .SingleOrDefaultAsync(s => s.UserId == userId);
+        }
+
         public async Task InsertStudentAsync(Student student)
         {                                     
             await Context.Student.AddAsync(student);

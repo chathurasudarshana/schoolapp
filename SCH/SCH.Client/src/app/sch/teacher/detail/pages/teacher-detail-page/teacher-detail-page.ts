@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Teacher } from '../../../../../sch/interfaces/teacher';
 import {
@@ -12,6 +12,9 @@ import { TeacherApi } from '../../../../../sch/services/teacher-api';
 import { CommonModule } from '@angular/common';
 import { Notification } from '../../../../../services/notification';
 import { HasUnsavedChanges } from '../../../../../interfaces/has-unsaved-changes';
+import { Auth } from '../../../../../services/auth';
+import { UserApi } from '../../../../../sch/services/user-api';
+import { UserLookup } from '../../../../../sch/interfaces/user-lookup';
 
 
 @Component({
@@ -21,12 +24,13 @@ import { HasUnsavedChanges } from '../../../../../interfaces/has-unsaved-changes
   styleUrl: './teacher-detail-page.scss'
 })
 export class TeacherDetailPage implements OnInit, HasUnsavedChanges {
+  protected readonly auth = inject(Auth);
   protected readonly teacherId = signal(0);
-
   protected readonly teacher = signal<Teacher | null>(null);
-
   protected readonly isTeacherLoading = signal(false);
   protected readonly isTeacherSaving = signal(false);
+  protected readonly availableUsers = signal<UserLookup[]>([]);
+  protected readonly isUsersLoading = signal(false);
 
   protected teacherForm: FormGroup;
 
@@ -35,19 +39,32 @@ export class TeacherDetailPage implements OnInit, HasUnsavedChanges {
     private readonly router: Router,
     private readonly fb: FormBuilder,
     private readonly teacherApi: TeacherApi,
+    private readonly userApi: UserApi,
     private readonly notification: Notification
   ) {
     this.teacherForm = this.fb.group({
       id: [0],
       name: ['', [Validators.required, Validators.minLength(2)]],
+      userId: [null],
     });
+
+    if (!this.auth.isAdmin()) {
+      this.teacherForm.get('userId')!.disable();
+    }
   }
 
   ngOnInit(): void {
     this._avRoute.params.subscribe((params) => {
       this.teacherId.set(+params['id'] || 0);
-
       this.setTeacher();
+
+      if (this.auth.isAdmin()) {
+        this.isUsersLoading.set(true);
+        this.userApi.getAvailableUsers('Teacher').subscribe({
+          next: (users) => this.availableUsers.set(users),
+          error: () => this.availableUsers.set([]),
+        }).add(() => this.isUsersLoading.set(false));
+      }
     });
   }
 
@@ -56,6 +73,7 @@ export class TeacherDetailPage implements OnInit, HasUnsavedChanges {
     this.teacherForm.reset({
       id: 0,
       name: '',
+      userId: null,
     });
   }
 
@@ -95,6 +113,7 @@ export class TeacherDetailPage implements OnInit, HasUnsavedChanges {
       this.teacherForm.setValue({
         id: teacher.id,
         name: teacher.name,
+        userId: teacher.userId ?? null,
       });
     }
   }
@@ -115,6 +134,7 @@ export class TeacherDetailPage implements OnInit, HasUnsavedChanges {
     const teacher: Teacher = {
       id: this.teacherForm.value.id,
       name: this.teacherForm.value.name,
+      userId: this.auth.isAdmin() ? (this.teacherForm.value.userId ?? null) : undefined,
       rowVersion: this.teacher()?.rowVersion, // Include rowVersion for concurrency check
     };
 

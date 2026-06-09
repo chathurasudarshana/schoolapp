@@ -30,6 +30,39 @@
             }
         </div>
 
+        @if (auth.isAdmin()) {
+        <div class="form-group">
+            <label for="userId">Linked User</label>
+            @if (isUsersLoading()) {
+            <p class="form-control-plaintext">Loading users...</p>
+            } @else {
+            <select
+                id="userId"
+                formControlName="userId"
+                class="form-control"
+            >
+                <option [value]="null">-- None --</option>
+                @if (teacher()?.userId) {
+                <option [value]="teacher()!.userId">{{ teacher()!.userId }}</option>
+                }
+                @for (u of availableUsers(); track u.id) {
+                <option [value]="u.id">{{ u.fullName }} ({{ u.id }})</option>
+                }
+            </select>
+            }
+        </div>
+        } @else {
+        <div class="form-group">
+            <label for="userIdReadonly">Linked User</label>
+            <input
+                id="userIdReadonly"
+                class="form-control"
+                [value]="teacher()?.userId ?? 'Not linked'"
+                disabled
+            />
+        </div>
+        }
+
         <button
             type="submit"
             class="btn btn-primary"

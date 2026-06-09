@@ -1,4 +1,4 @@
-import { Component, Inject, signal } from '@angular/core';
+import { Component, Inject, inject, signal } from '@angular/core';
 import { AgGridAngular } from 'ag-grid-angular';
 import {
   AllCommunityModule,
@@ -30,16 +30,21 @@ import { ConfirmDialog } from '../../../../../selectors/confirm-dialog/confirm-d
 import { MatDialog } from '@angular/material/dialog';
 import { StudentPhotoCell } from '../../../selectors/student-photo-cell/student-photo-cell';
 import { StudentGridRequest } from '../../../interfaces/student-grid-request';
+import { Auth } from '../../../../../services/auth';
+import { Policy } from '../../../../../enums/policy';
+import { HasPolicy } from '../../../../../directives/has-policy.directive';
 
 ModuleRegistry.registerModules([AllCommunityModule, ServerSideRowModelModule, ServerSideRowModelApiModule, SetFilterModule]);
 
 @Component({
   selector: 'sch-student-list-page',
-  imports: [AgGridAngular],
+  imports: [AgGridAngular, HasPolicy],
   templateUrl: './student-list-page.html',
   styleUrl: './student-list-page.scss',
 })
 export class StudentListPage {
+  protected readonly auth = inject(Auth);
+  protected readonly Policy = Policy;
   protected readonly columnDefs: ColDef<
     Student,
     number | string | Date | boolean | null
@@ -108,10 +113,19 @@ export class StudentListPage {
     {
       headerName: 'Actions',
       cellRenderer: (params: any) => {
-        return `
-      <button type="button" class="edit-btn" data-action="edit">Edit</button>
-      <button type="button" class="delete-btn" data-action="delete">Delete</button>
-    `;
+        const student: Student = params.data;
+        const canEdit = this.auth.hasPolicy(Policy.EditStudents) ||
+          (this.auth.hasPolicy(Policy.EditOwnStudent) &&
+            student?.id === this.auth.ownStudentId());
+        const canDelete = this.auth.hasPolicy(Policy.DeleteStudents);
+
+        const editBtn = canEdit
+          ? `<button type="button" class="edit-btn" data-action="edit">Edit</button>`
+          : '';
+        const deleteBtn = canDelete
+          ? `<button type="button" class="delete-btn" data-action="delete">Delete</button>`
+          : '';
+        return `${editBtn}${deleteBtn}`;
       },
       width: 200,
       suppressMovable: true,

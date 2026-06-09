@@ -10,6 +10,8 @@ namespace SCH.Repositories.Students
 
         Task<Student?> GetStudentAsync(int id);
 
+        Task<Student?> GetStudentByUserIdAsync(int userId);
+
         Task InsertStudentAsync(Student student);
 
         /// <summary>

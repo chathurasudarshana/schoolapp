@@ -9,6 +9,8 @@ namespace SCH.Models.Teachers.Entities
 
         public required string Name { get; set; }
 
+        public int? UserId { get; set; }
+
         // Audit properties
         public int CreatedBy { get; set; }
         public DateTime CreatedDate { get; set; }

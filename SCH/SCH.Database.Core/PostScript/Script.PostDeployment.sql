@@ -6,7 +6,7 @@ Post-Deployment Script - Seed Data
 */
 
 -- =============================================
--- SECTION 1: Seed Roles (Admin and Basic)
+-- SECTION 1: Seed Roles
 -- =============================================
 IF NOT EXISTS (SELECT 1 FROM [identity].[AspNetRoles] WHERE [Name] = 'Admin')
 BEGIN
@@ -55,6 +55,309 @@ BEGIN
     
     PRINT 'Basic role created';
 END
+
+IF NOT EXISTS (SELECT 1 FROM [identity].[AspNetRoles] WHERE [Name] = 'Teacher')
+BEGIN
+    INSERT INTO [identity].[AspNetRoles]
+    (
+        [Name],
+        [NormalizedName],
+        [ConcurrencyStamp],
+        [Description],
+        [IsActive],
+        [CreatedDate]
+    )
+    VALUES
+    (
+        'Teacher',
+        'TEACHER',
+        NEWID(),
+        'Teacher role - can add/edit students and courses, read/edit own teacher record',
+        1,
+        GETUTCDATE()
+    );
+
+    PRINT 'Teacher role created';
+END
+
+IF NOT EXISTS (SELECT 1 FROM [identity].[AspNetRoles] WHERE [Name] = 'Student')
+BEGIN
+    INSERT INTO [identity].[AspNetRoles]
+    (
+        [Name],
+        [NormalizedName],
+        [ConcurrencyStamp],
+        [Description],
+        [IsActive],
+        [CreatedDate]
+    )
+    VALUES
+    (
+        'Student',
+        'STUDENT',
+        NEWID(),
+        'Student role - can edit own student record and read courses',
+        1,
+        GETUTCDATE()
+    );
+
+    PRINT 'Student role created';
+END
+
+GO
+
+-- =============================================
+-- SECTION 1b: Seed Role Claims
+-- =============================================
+
+-- Teacher role claims
+DECLARE @TeacherRoleId INT = (SELECT [Id] FROM [identity].[AspNetRoles] WHERE [Name] = 'Teacher');
+
+IF @TeacherRoleId IS NOT NULL
+BEGIN
+    IF NOT EXISTS 
+    (
+        SELECT 1 
+        FROM [identity].[AspNetRoleClaims] 
+        WHERE [RoleId] = @TeacherRoleId AND [ClaimType] = 'permission' AND [ClaimValue] = 'students:read'
+    )
+    BEGIN
+        INSERT INTO [identity].[AspNetRoleClaims] 
+        (
+            [RoleId], 
+            [ClaimType], 
+            [ClaimValue]
+        ) 
+        VALUES 
+        (
+            @TeacherRoleId, 
+            'permission', 
+            'students:read'
+        );
+    END
+
+    IF NOT EXISTS 
+    (
+        SELECT 1 
+        FROM [identity].[AspNetRoleClaims] 
+        WHERE [RoleId] = @TeacherRoleId AND [ClaimType] = 'permission' AND [ClaimValue] = 'students:write'
+    )
+    BEGIN
+        INSERT INTO [identity].[AspNetRoleClaims] 
+        (
+            [RoleId], 
+            [ClaimType], 
+            [ClaimValue]
+        ) 
+        VALUES 
+        (
+            @TeacherRoleId, 
+            'permission', 
+            'students:write'
+        );
+    END
+
+    IF NOT EXISTS 
+    (
+        SELECT 1 
+        FROM [identity].[AspNetRoleClaims] 
+        WHERE [RoleId] = @TeacherRoleId AND [ClaimType] = 'permission' AND [ClaimValue] = 'students:add'
+    )
+    BEGIN
+        INSERT INTO [identity].[AspNetRoleClaims] 
+        (
+            [RoleId], 
+            [ClaimType], 
+            [ClaimValue]
+        ) 
+        VALUES 
+        (
+            @TeacherRoleId, 
+            'permission', 
+            'students:add'
+        );
+    END
+
+    IF NOT EXISTS 
+    (
+        SELECT 1 
+        FROM [identity].[AspNetRoleClaims] 
+        WHERE [RoleId] = @TeacherRoleId AND [ClaimType] = 'permission' AND [ClaimValue] = 'teachers:read'
+    )
+    BEGIN
+        INSERT INTO [identity].[AspNetRoleClaims] 
+        (
+            [RoleId], 
+            [ClaimType], 
+            [ClaimValue]
+        ) 
+        VALUES 
+        (
+            @TeacherRoleId, 
+            'permission', 
+            'teachers:read'
+        );
+    END
+
+    IF NOT EXISTS 
+    (
+        SELECT 1 
+        FROM [identity].[AspNetRoleClaims] 
+        WHERE [RoleId] = @TeacherRoleId AND [ClaimType] = 'permission' AND [ClaimValue] = 'teachers:write-own'
+    )
+    BEGIN
+        INSERT INTO [identity].[AspNetRoleClaims] 
+        (
+            [RoleId], 
+            [ClaimType], 
+            [ClaimValue]
+        ) 
+        VALUES 
+        (
+            @TeacherRoleId, 
+            'permission', 
+            'teachers:write-own'
+        );
+    END
+
+    IF NOT EXISTS 
+    (
+        SELECT 1 
+        FROM [identity].[AspNetRoleClaims] 
+        WHERE [RoleId] = @TeacherRoleId AND [ClaimType] = 'permission' AND [ClaimValue] = 'courses:read'
+    )
+    BEGIN
+        INSERT INTO [identity].[AspNetRoleClaims] 
+        (
+            [RoleId], 
+            [ClaimType], 
+            [ClaimValue]
+        ) 
+        VALUES 
+        (
+            @TeacherRoleId, 
+            'permission', 
+            'courses:read'
+        );
+    END
+
+    IF NOT EXISTS 
+    (
+        SELECT 1 
+        FROM [identity].[AspNetRoleClaims] 
+        WHERE [RoleId] = @TeacherRoleId AND [ClaimType] = 'permission' AND [ClaimValue] = 'courses:write'
+    )
+    BEGIN
+        INSERT INTO [identity].[AspNetRoleClaims] 
+        (
+            [RoleId], 
+            [ClaimType], 
+            [ClaimValue]
+        ) 
+        VALUES 
+        (
+            @TeacherRoleId, 
+            'permission', 
+            'courses:write'
+        );
+    END
+
+    IF NOT EXISTS 
+    (
+        SELECT 1 
+        FROM [identity].[AspNetRoleClaims] 
+        WHERE [RoleId] = @TeacherRoleId AND [ClaimType] = 'permission' AND [ClaimValue] = 'courses:add'
+    )
+    BEGIN
+        INSERT INTO [identity].[AspNetRoleClaims] 
+        (
+            [RoleId], 
+            [ClaimType], 
+            [ClaimValue]
+        ) 
+        VALUES 
+        (
+            @TeacherRoleId, 
+            'permission', 
+            'courses:add'
+        );
+    END
+
+    PRINT 'Teacher role claims seeded';
+END
+
+-- Student role claims
+DECLARE @StudentRoleId INT = (SELECT [Id] FROM [identity].[AspNetRoles] WHERE [Name] = 'Student');
+
+IF @StudentRoleId IS NOT NULL
+BEGIN
+    IF NOT EXISTS 
+    (
+        SELECT 1 
+        FROM [identity].[AspNetRoleClaims] 
+        WHERE [RoleId] = @StudentRoleId AND [ClaimType] = 'permission' AND [ClaimValue] = 'students:read'
+    )
+    BEGIN
+        INSERT INTO [identity].[AspNetRoleClaims] 
+        (
+            [RoleId], 
+            [ClaimType], 
+            [ClaimValue]
+        ) 
+        VALUES 
+        (
+            @StudentRoleId, 
+            'permission', 
+            'students:read'
+        );
+    END
+
+    IF NOT EXISTS 
+    (
+        SELECT 1 
+        FROM [identity].[AspNetRoleClaims] 
+        WHERE [RoleId] = @StudentRoleId AND [ClaimType] = 'permission' AND [ClaimValue] = 'students:write-own'
+    )
+    BEGIN
+        INSERT INTO [identity].[AspNetRoleClaims] 
+        (
+            [RoleId], 
+            [ClaimType], 
+            [ClaimValue]
+        ) 
+        VALUES 
+        (
+            @StudentRoleId, 
+            'permission', 
+            'students:write-own'
+        );
+    END
+
+    IF NOT EXISTS 
+    (
+        SELECT 1 
+        FROM [identity].[AspNetRoleClaims] 
+        WHERE [RoleId] = @StudentRoleId AND [ClaimType] = 'permission' AND [ClaimValue] = 'courses:read'
+    )
+    BEGIN
+        INSERT INTO [identity].[AspNetRoleClaims] 
+        (
+            [RoleId], 
+            [ClaimType], 
+            [ClaimValue]
+        ) 
+        VALUES 
+        (
+            @StudentRoleId, 
+            'permission', 
+            'courses:read'
+        );
+    END
+
+    PRINT 'Student role claims seeded';
+END
+
+GO
 
 -- =============================================
 -- SECTION 2: Seed Admin User
@@ -297,117 +600,771 @@ END
 GO
 
 -- =============================================
--- SECTION 4: Seed Student Mock Data
+-- SECTION 4: Seed Teacher Users
 -- =============================================
-IF NOT EXISTS
-(
-    SELECT
-    1
-    FROM [dbo].[Student]
-)
-BEGIN
-    -- Get admin user ID for CreatedBy field
-    DECLARE @AdminUserIdForStudents INT = (SELECT TOP 1 [Id] FROM [identity].[AspNetUsers] WHERE [UserName] = 'admin');
+-- Password: Basic123!
 
-    INSERT INTO [dbo].[Student]
+DECLARE @Teacher1UserId INT;
+DECLARE @Teacher2UserId INT;
+DECLARE @TeacherRoleIdForUsers INT;
+DECLARE @BasicRoleIdForTeachers INT;
+
+SELECT @TeacherRoleIdForUsers = [Id] FROM [identity].[AspNetRoles] WHERE [Name] = 'Teacher';
+SELECT @BasicRoleIdForTeachers = [Id] FROM [identity].[AspNetRoles] WHERE [Name] = 'Basic';
+
+IF NOT EXISTS (SELECT 1 FROM [identity].[AspNetUsers] WHERE [UserName] = 'teacher1')
+BEGIN
+    INSERT INTO [identity].[AspNetUsers]
     (
-	    [FirstName]
-        ,[LastName]
-        ,[Email]
-        ,[PhoneNumber]
-        ,[SSN]
-        ,[Image]
-        ,[StartDate]
-        ,[IsActive]
-        ,[CreatedBy]
-        ,[CreatedDate]
-        ,[ModifiedBy]
-        ,[ModifiedDate]
+        [UserName],
+        [NormalizedUserName],
+        [Email],
+        [NormalizedEmail],
+        [EmailConfirmed],
+        [PasswordHash],
+        [SecurityStamp],
+        [ConcurrencyStamp],
+        [PhoneNumber],
+        [PhoneNumberConfirmed],
+        [TwoFactorEnabled],
+        [LockoutEnd],
+        [LockoutEnabled],
+        [AccessFailedCount],
+        [FirstName],
+        [LastName],
+        [IsActive],
+        [CreatedDate],
+        [LastLoginDate],
+        [CreatedBy],
+        [ModifiedBy],
+        [ModifiedDate]
     )
     VALUES
     (
-	    'FirstName1'
-        ,'LastName1'
-        ,'email1@mail.com'
-        ,'phonenumber1'
-        ,'ssn1'
-        ,'image1.png'
-        ,'2024-11-11'
-        ,1
-        ,@AdminUserIdForStudents  -- CreatedBy (admin user)
-        ,GETUTCDATE()             -- CreatedDate
-        ,NULL                     -- ModifiedBy
-        ,NULL                     -- ModifiedDate
+        'teacher1',
+        'TEACHER1',
+        'teacher1@schoolapp.com',
+        'TEACHER1@SCHOOLAPP.COM',
+        1,
+        'AQAAAAIAAYagAAAAEIGSV6dcLldguuvqLg4nEDB8keDYvX5ahRVABWljBJVJngrbWoC9HxCZl6fnLh+EWw==', -- PasswordHash for "Basic123!" (generated with ASP.NET Identity PasswordHasher)
+        NEWID(),
+        NEWID(),
+        NULL,
+        0,
+        0,
+        NULL,
+        1,
+        0,
+        'Teacher',
+        'One',
+        1,
+        GETUTCDATE(),
+        NULL,
+        NULL,
+        NULL,
+        NULL
+    );
+    SET @Teacher1UserId = SCOPE_IDENTITY();
+    INSERT INTO [identity].[AspNetUserRoles] ([UserId],[RoleId]) 
+    VALUES (@Teacher1UserId, @BasicRoleIdForTeachers);
+
+    INSERT INTO [identity].[AspNetUserRoles] ([UserId],[RoleId])
+    VALUES (@Teacher1UserId, @TeacherRoleIdForUsers);
+
+    INSERT INTO [dbo].[User] 
+    (
+        [Id],
+        [FirstName],
+        [LastName],
+        [CreatedBy],
+        [CreatedDate],
+        [ModifiedBy],
+        [ModifiedDate]
+    )
+    VALUES 
+    (
+        @Teacher1UserId,
+        'Teacher',
+        'One',
+        NULL,
+        GETUTCDATE(),
+        NULL,
+        NULL
+    );
+    PRINT 'teacher1 created';
+END
+
+IF NOT EXISTS (SELECT 1 FROM [identity].[AspNetUsers] WHERE [UserName] = 'teacher2')
+BEGIN
+    INSERT INTO [identity].[AspNetUsers]
+    (
+        [UserName],
+        [NormalizedUserName],
+        [Email],
+        [NormalizedEmail],
+        [EmailConfirmed],
+        [PasswordHash],
+        [SecurityStamp],
+        [ConcurrencyStamp],
+        [PhoneNumber],
+        [PhoneNumberConfirmed],
+        [TwoFactorEnabled],
+        [LockoutEnd],
+        [LockoutEnabled],
+        [AccessFailedCount],
+        [FirstName],
+        [LastName],
+        [IsActive],
+        [CreatedDate],
+        [LastLoginDate],
+        [CreatedBy],
+        [ModifiedBy],
+        [ModifiedDate]
+    )
+    VALUES
+    (
+        'teacher2',
+        'TEACHER2',
+        'teacher2@schoolapp.com',
+        'TEACHER2@SCHOOLAPP.COM',
+        1,
+        'AQAAAAIAAYagAAAAEIGSV6dcLldguuvqLg4nEDB8keDYvX5ahRVABWljBJVJngrbWoC9HxCZl6fnLh+EWw==', -- PasswordHash for "Basic123!" (generated with ASP.NET Identity PasswordHasher)
+        NEWID(),
+        NEWID(),
+        NULL,
+        0,
+        0,
+        NULL,
+        1,
+        0,
+        'Teacher',
+        'Two',
+        1,
+        GETUTCDATE(),
+        NULL,
+        NULL,
+        NULL,
+        NULL
+    );
+    SET @Teacher2UserId = SCOPE_IDENTITY();
+    INSERT INTO [identity].[AspNetUserRoles] ([UserId],[RoleId]) 
+    VALUES (@Teacher2UserId, @BasicRoleIdForTeachers);
+    INSERT INTO [identity].[AspNetUserRoles] ([UserId],[RoleId]) 
+    VALUES (@Teacher2UserId, @TeacherRoleIdForUsers);
+
+    INSERT INTO [dbo].[User] 
+    (
+        [Id],
+        [FirstName],
+        [LastName],
+        [CreatedBy],
+        [CreatedDate],
+        [ModifiedBy],
+        [ModifiedDate]
+    )
+    VALUES 
+    (
+        @Teacher2UserId,
+        'Teacher',
+        'Two',
+        NULL,
+        GETUTCDATE(),
+        NULL,
+        NULL
+    );
+    PRINT 'teacher2 created';
+END
+
+GO
+
+-- =============================================
+-- SECTION 5: Seed Student Users
+-- =============================================
+-- Password: Basic123!
+
+DECLARE @Student1UserId INT;
+DECLARE @Student2UserId INT;
+DECLARE @StudentRoleIdForUsers INT;
+DECLARE @BasicRoleIdForStudents INT;
+
+SELECT @StudentRoleIdForUsers = [Id] FROM [identity].[AspNetRoles] WHERE [Name] = 'Student';
+SELECT @BasicRoleIdForStudents = [Id] FROM [identity].[AspNetRoles] WHERE [Name] = 'Basic';
+
+IF NOT EXISTS (SELECT 1 FROM [identity].[AspNetUsers] WHERE [UserName] = 'student1')
+BEGIN
+    INSERT INTO [identity].[AspNetUsers]
+    (
+        [UserName],
+        [NormalizedUserName],
+        [Email],
+        [NormalizedEmail],
+        [EmailConfirmed],
+        [PasswordHash],
+        [SecurityStamp],
+        [ConcurrencyStamp],
+        [PhoneNumber],
+        [PhoneNumberConfirmed],
+        [TwoFactorEnabled],
+        [LockoutEnd],
+        [LockoutEnabled],
+        [AccessFailedCount],
+        [FirstName],
+        [LastName],
+        [IsActive],
+        [CreatedDate],
+        [LastLoginDate],
+        [CreatedBy],
+        [ModifiedBy],
+        [ModifiedDate]
+    )
+    VALUES
+    (
+        'student1',
+        'STUDENT1',
+        'student1@schoolapp.com',
+        'STUDENT1@SCHOOLAPP.COM',
+        1,
+        'AQAAAAIAAYagAAAAEIGSV6dcLldguuvqLg4nEDB8keDYvX5ahRVABWljBJVJngrbWoC9HxCZl6fnLh+EWw==', -- PasswordHash for "Basic123!" (generated with ASP.NET Identity PasswordHasher)
+        NEWID(),
+        NEWID(),
+        NULL,
+        0,
+        0,
+        NULL,
+        1,
+        0,
+        'Student',
+        'One',
+        1,
+        GETUTCDATE(),
+        NULL,
+        NULL,
+        NULL,
+        NULL
+    );
+    SET @Student1UserId = SCOPE_IDENTITY();
+    INSERT INTO [identity].[AspNetUserRoles] ([UserId],[RoleId]) 
+    VALUES (@Student1UserId, @BasicRoleIdForStudents);
+    INSERT INTO [identity].[AspNetUserRoles] ([UserId],[RoleId]) 
+    VALUES (@Student1UserId, @StudentRoleIdForUsers);
+    INSERT INTO [dbo].[User] 
+    (
+        [Id],
+        [FirstName],
+        [LastName],
+        [CreatedBy],
+        [CreatedDate],
+        [ModifiedBy],
+        [ModifiedDate]
+    )
+    VALUES 
+    (
+        @Student1UserId,
+        'Student',
+        'One',
+        NULL,
+        GETUTCDATE(),
+        NULL,
+        NULL
+    );
+    PRINT 'student1 created';
+END
+
+IF NOT EXISTS (SELECT 1 FROM [identity].[AspNetUsers] WHERE [UserName] = 'student2')
+BEGIN
+    INSERT INTO [identity].[AspNetUsers]
+    (
+        [UserName],
+        [NormalizedUserName],
+        [Email],
+        [NormalizedEmail],
+        [EmailConfirmed],
+        [PasswordHash],
+        [SecurityStamp],
+        [ConcurrencyStamp],
+        [PhoneNumber],
+        [PhoneNumberConfirmed],
+        [TwoFactorEnabled],
+        [LockoutEnd],
+        [LockoutEnabled],
+        [AccessFailedCount],
+        [FirstName],
+        [LastName],
+        [IsActive],
+        [CreatedDate],
+        [LastLoginDate],
+        [CreatedBy],
+        [ModifiedBy],
+        [ModifiedDate]
+    )
+    VALUES
+    (
+        'student2',
+        'STUDENT2',
+        'student2@schoolapp.com',
+        'STUDENT2@SCHOOLAPP.COM',
+        1,
+        'AQAAAAIAAYagAAAAEIGSV6dcLldguuvqLg4nEDB8keDYvX5ahRVABWljBJVJngrbWoC9HxCZl6fnLh+EWw==', -- PasswordHash for "Basic123!" (generated with ASP.NET Identity PasswordHasher)
+        NEWID(),
+        NEWID(),
+        NULL,
+        0,
+        0,
+        NULL,
+        1,
+        0,
+        'Student',
+        'Two',
+        1,
+        GETUTCDATE(),
+        NULL,
+        NULL,
+        NULL,
+        NULL
+    );
+    SET @Student2UserId = SCOPE_IDENTITY();
+    INSERT INTO [identity].[AspNetUserRoles] ([UserId],[RoleId]) 
+    VALUES (@Student2UserId, @BasicRoleIdForStudents);
+    INSERT INTO [identity].[AspNetUserRoles] ([UserId],[RoleId]) 
+    VALUES (@Student2UserId, @StudentRoleIdForUsers);
+    INSERT INTO [dbo].[User] 
+    (
+        [Id],
+        [FirstName],
+        [LastName],
+        [CreatedBy],
+        [CreatedDate],
+        [ModifiedBy],
+        [ModifiedDate]
+    )
+    VALUES 
+    (
+        @Student2UserId,
+        'Student',
+        'Two',
+        NULL,
+        GETUTCDATE(),
+        NULL,
+        NULL
+    );
+    PRINT 'student2 created';
+END
+
+GO
+
+-- =============================================
+-- SECTION 6: Seed Special Basic View Users
+-- =============================================
+-- These users have Basic role + a single view-only claim.
+-- Password: Basic123!
+
+DECLARE @BasicRoleIdForViewers INT;
+SELECT @BasicRoleIdForViewers = [Id] FROM [identity].[AspNetRoles] WHERE [Name] = 'Basic';
+
+-- TeacherViewUser: can only view teachers page
+IF NOT EXISTS (SELECT 1 FROM [identity].[AspNetUsers] WHERE [UserName] = 'teacherviewuser')
+BEGIN
+    DECLARE @TeacherViewUserId INT;
+    INSERT INTO [identity].[AspNetUsers]
+    (
+        [UserName],
+        [NormalizedUserName],
+        [Email],
+        [NormalizedEmail],
+        [EmailConfirmed],
+        [PasswordHash],
+        [SecurityStamp],
+        [ConcurrencyStamp],
+        [PhoneNumber],
+        [PhoneNumberConfirmed],
+        [TwoFactorEnabled],
+        [LockoutEnd],
+        [LockoutEnabled],
+        [AccessFailedCount],
+        [FirstName],
+        [LastName],
+        [IsActive],
+        [CreatedDate],
+        [LastLoginDate],
+        [CreatedBy],
+        [ModifiedBy],
+        [ModifiedDate]
+    )
+    VALUES
+    (
+        'teacherviewuser',
+        'TEACHERVIEWUSER',
+        'teacherviewuser@schoolapp.com',
+        'TEACHERVIEWUSER@SCHOOLAPP.COM',
+        1,
+        'AQAAAAIAAYagAAAAEIGSV6dcLldguuvqLg4nEDB8keDYvX5ahRVABWljBJVJngrbWoC9HxCZl6fnLh+EWw==', -- PasswordHash for "Basic123!" (generated with ASP.NET Identity PasswordHasher)
+        NEWID(),
+        NEWID(),
+        NULL,
+        0,
+        0,
+        NULL,
+        1,
+        0,
+        'TeacherView',
+        'User',
+        1,
+        GETUTCDATE(),
+        NULL,
+        NULL,
+        NULL,
+        NULL
+    );
+    SET @TeacherViewUserId = SCOPE_IDENTITY();
+    INSERT INTO [identity].[AspNetUserRoles] ([UserId],[RoleId]) 
+    VALUES (@TeacherViewUserId, @BasicRoleIdForViewers);
+    INSERT INTO [identity].[AspNetUserClaims] ([UserId],[ClaimType],[ClaimValue]) 
+    VALUES (@TeacherViewUserId, 'permission', 'teachers:read');
+    INSERT INTO [dbo].[User] 
+    (
+        [Id],
+        [FirstName],
+        [LastName],
+        [CreatedBy],
+        [CreatedDate],
+        [ModifiedBy],
+        [ModifiedDate]
+    )
+    VALUES 
+    (
+        @TeacherViewUserId,
+        'TeacherView',
+        'User',
+        NULL,
+        GETUTCDATE(),
+        NULL,
+        NULL
+    );
+    PRINT 'teacherviewuser created';
+END
+
+-- CourseViewUser: can only view courses page
+IF NOT EXISTS (SELECT 1 FROM [identity].[AspNetUsers] WHERE [UserName] = 'courseviewuser')
+BEGIN
+    DECLARE @CourseViewUserId INT;
+    INSERT INTO [identity].[AspNetUsers]
+    (
+        [UserName],
+        [NormalizedUserName],
+        [Email],
+        [NormalizedEmail],
+        [EmailConfirmed],
+        [PasswordHash],
+        [SecurityStamp],
+        [ConcurrencyStamp],
+        [PhoneNumber],
+        [PhoneNumberConfirmed],
+        [TwoFactorEnabled],
+        [LockoutEnd],
+        [LockoutEnabled],
+        [AccessFailedCount],
+        [FirstName],
+        [LastName],
+        [IsActive],
+        [CreatedDate],
+        [LastLoginDate],
+        [CreatedBy],
+        [ModifiedBy],
+        [ModifiedDate]
+    )
+    VALUES
+    (
+        'courseviewuser',
+        'COURSEVIEWUSER',
+        'courseviewuser@schoolapp.com',
+        'COURSEVIEWUSER@SCHOOLAPP.COM',
+        1,
+        'AQAAAAIAAYagAAAAEIGSV6dcLldguuvqLg4nEDB8keDYvX5ahRVABWljBJVJngrbWoC9HxCZl6fnLh+EWw==', -- PasswordHash for "Basic123!" (generated with ASP.NET Identity PasswordHasher)
+        NEWID(),
+        NEWID(),
+        NULL,
+        0,
+        0,
+        NULL,
+        1,
+        0,
+        'CourseView',
+        'User',
+        1,
+        GETUTCDATE(),
+        NULL,
+        NULL,
+        NULL,
+        NULL
+    );
+    SET @CourseViewUserId = SCOPE_IDENTITY();
+    INSERT INTO [identity].[AspNetUserRoles] ([UserId],[RoleId]) 
+    VALUES (@CourseViewUserId, @BasicRoleIdForViewers);
+    INSERT INTO [identity].[AspNetUserClaims] ([UserId],[ClaimType],[ClaimValue]) 
+    VALUES (@CourseViewUserId, 'permission', 'courses:read');
+    INSERT INTO [dbo].[User] 
+    (
+        [Id],
+        [FirstName],
+        [LastName],
+        [CreatedBy],
+        [CreatedDate],
+        [ModifiedBy],
+        [ModifiedDate]
+    )
+    VALUES 
+    (
+        @CourseViewUserId,
+        'CourseView',
+        'User',
+        NULL,
+        GETUTCDATE(),
+        NULL,
+        NULL
+    );
+    PRINT 'courseviewuser created';
+END
+
+-- StudentViewUser: can only view students page
+IF NOT EXISTS (SELECT 1 FROM [identity].[AspNetUsers] WHERE [UserName] = 'studentviewuser')
+BEGIN
+    DECLARE @StudentViewUserId INT;
+    INSERT INTO [identity].[AspNetUsers]
+    (
+        [UserName],
+        [NormalizedUserName],
+        [Email],
+        [NormalizedEmail],
+        [EmailConfirmed],
+        [PasswordHash],
+        [SecurityStamp],
+        [ConcurrencyStamp],
+        [PhoneNumber],
+        [PhoneNumberConfirmed],
+        [TwoFactorEnabled],
+        [LockoutEnd],
+        [LockoutEnabled],
+        [AccessFailedCount],
+        [FirstName],
+        [LastName],
+        [IsActive],
+        [CreatedDate],
+        [LastLoginDate],
+        [CreatedBy],
+        [ModifiedBy],
+        [ModifiedDate]
+    )
+    VALUES
+    (
+        'studentviewuser',
+        'STUDENTVIEWUSER',
+        'studentviewuser@schoolapp.com',
+        'STUDENTVIEWUSER@SCHOOLAPP.COM',
+        1,
+        'AQAAAAIAAYagAAAAEIGSV6dcLldguuvqLg4nEDB8keDYvX5ahRVABWljBJVJngrbWoC9HxCZl6fnLh+EWw==', -- PasswordHash for "Basic123!" (generated with ASP.NET Identity PasswordHasher)Ww==',
+        NEWID(),
+        NEWID(),
+        NULL,
+        0,
+        0,
+        NULL,
+        1,
+        0,
+        'StudentView',
+        'User',
+        1,
+        GETUTCDATE(),
+        NULL,
+        NULL,
+        NULL,
+        NULL
+    );
+    SET @StudentViewUserId = SCOPE_IDENTITY();
+    INSERT INTO [identity].[AspNetUserRoles] ([UserId],[RoleId]) 
+    VALUES (@StudentViewUserId, @BasicRoleIdForViewers);
+    INSERT INTO [identity].[AspNetUserClaims] ([UserId],[ClaimType],[ClaimValue]) 
+    VALUES (@StudentViewUserId, 'permission', 'students:read');
+    INSERT INTO [dbo].[User] 
+    (
+        [Id],
+        [FirstName],
+        [LastName],
+        [CreatedBy],
+        [CreatedDate],
+        [ModifiedBy],
+        [ModifiedDate]
+    )
+    VALUES 
+    (
+        @StudentViewUserId,
+        'StudentView',
+        'User',
+        NULL,
+        GETUTCDATE(),
+        NULL,
+        NULL
+    );
+    PRINT 'studentviewuser created';
+END
+
+GO
+
+-- =============================================
+-- SECTION 7: Seed Teacher Records
+-- =============================================
+IF NOT EXISTS (SELECT 1 FROM [dbo].[Teacher])
+BEGIN
+    DECLARE @AdminUserIdForTeachers INT = (SELECT TOP 1 [Id] FROM [identity].[AspNetUsers] WHERE [UserName] = 'admin');
+    DECLARE @Teacher1UserIdForRecord INT = (SELECT [Id] FROM [identity].[AspNetUsers] WHERE [UserName] = 'teacher1');
+    DECLARE @Teacher2UserIdForRecord INT = (SELECT [Id] FROM [identity].[AspNetUsers] WHERE [UserName] = 'teacher2');
+
+    INSERT INTO [dbo].[Teacher] 
+    (
+        [Name],
+        [UserId],
+        [CreatedBy],
+        [CreatedDate],
+        [ModifiedBy],
+        [ModifiedDate]
+    )
+    VALUES
+        (
+            'Teacher One', 
+            @Teacher1UserIdForRecord, 
+            @AdminUserIdForTeachers, 
+            GETUTCDATE(), 
+            NULL, 
+            NULL
+        ),
+        (
+            'Teacher Two', 
+            @Teacher2UserIdForRecord, 
+            @AdminUserIdForTeachers, 
+            GETUTCDATE(), 
+            NULL, 
+            NULL
+        );
+
+    PRINT 'Teacher records seeded';
+END
+
+GO
+
+-- =============================================
+-- SECTION 8: Seed Student Mock Data
+-- =============================================
+IF NOT EXISTS (SELECT 1 FROM [dbo].[Student])
+BEGIN
+    DECLARE @AdminUserIdForStudents INT = (SELECT TOP 1 [Id] FROM [identity].[AspNetUsers] WHERE [UserName] = 'admin');
+    DECLARE @Student1UserIdForRecord INT = (SELECT [Id] FROM [identity].[AspNetUsers] WHERE [UserName] = 'student1');
+    DECLARE @Student2UserIdForRecord INT = (SELECT [Id] FROM [identity].[AspNetUsers] WHERE [UserName] = 'student2');
+
+    INSERT INTO [dbo].[Student]
+    (
+        [FirstName],
+        [LastName],
+        [Email],
+        [PhoneNumber],
+        [SSN],
+        [Image],
+        [StartDate],
+        [IsActive],
+        [UserId],
+        [CreatedBy],
+        [CreatedDate],
+        [ModifiedBy],
+        [ModifiedDate]
+    )
+    VALUES
+    (
+        'FirstName1',
+        'LastName1',
+        'email1@mail.com',
+        'phonenumber1',
+        'ssn1',
+        'image1.png',
+        '2024-11-11',
+        1,
+        @Student1UserIdForRecord,
+        @AdminUserIdForStudents,
+        GETUTCDATE(),
+        NULL,
+        NULL
     ),
     (
-	    'FirstName2'
-        ,'LastName2'
-        ,'email2@mail.com'
-        ,'phonenumber2'
-        ,'ssn2'
-        ,'image2.png'
-        ,'2024-11-12'
-        ,1
-        ,@AdminUserIdForStudents  -- CreatedBy (admin user)
-        ,GETUTCDATE()             -- CreatedDate
-        ,NULL                     -- ModifiedBy
-        ,NULL                     -- ModifiedDate
+        'FirstName2',
+        'LastName2',
+        'email2@mail.com',
+        'phonenumber2',
+        'ssn2',
+        'image2.png',
+        '2024-11-12',
+        1,
+        @Student2UserIdForRecord,
+        @AdminUserIdForStudents,
+        GETUTCDATE(),
+        NULL,
+        NULL
     ),
     (
-	    'FirstName3'
-        ,'LastName3'
-        ,'email3@mail.com'
-        ,'phonenumber3'
-        ,'ssn3'
-        ,'image3.png'
-        ,'2024-11-13'
-        ,1
-        ,@AdminUserIdForStudents  -- CreatedBy (admin user)
-        ,GETUTCDATE()             -- CreatedDate
-        ,NULL                     -- ModifiedBy
-        ,NULL                     -- ModifiedDate
+        'FirstName3',
+        'LastName3',
+        'email3@mail.com',
+        'phonenumber3',
+        'ssn3',
+        'image3.png',
+        '2024-11-13',
+        1,
+        NULL,
+        @AdminUserIdForStudents,
+        GETUTCDATE(),
+        NULL,
+        NULL
     ),
     (
-	    'FirstName4'
-        ,'LastName4'
-        ,'email4@mail.com'
-        ,'phonenumber4'
-        ,'ssn4'
-        ,'image4.png'
-        ,'2024-11-14'
-        ,1
-        ,@AdminUserIdForStudents  -- CreatedBy (admin user)
-        ,GETUTCDATE()             -- CreatedDate
-        ,NULL                     -- ModifiedBy
-        ,NULL                     -- ModifiedDate
+        'FirstName4',
+        'LastName4',
+        'email4@mail.com',
+        'phonenumber4',
+        'ssn4',
+        'image4.png',
+        '2024-11-14',
+        1,
+        NULL,
+        @AdminUserIdForStudents,
+        GETUTCDATE(),
+        NULL,
+        NULL
     ),
     (
-	    'FirstName5'
-        ,'LastName5'
-        ,'email5@mail.com'
-        ,'phonenumber5'
-        ,'ssn5'
-        ,'image5.png'
-        ,'2024-11-15'
-        ,0
-        ,@AdminUserIdForStudents  -- CreatedBy (admin user)
-        ,GETUTCDATE()             -- CreatedDate
-        ,NULL                     -- ModifiedBy
-        ,NULL                     -- ModifiedDate
+        'FirstName5',
+        'LastName5',
+        'email5@mail.com',
+        'phonenumber5',
+        'ssn5',
+        'image5.png',
+        '2024-11-15',
+        0,
+        NULL,
+        @AdminUserIdForStudents,
+        GETUTCDATE(),
+        NULL,
+        NULL
     ),
     (
-	    'FirstName6'
-        ,'LastName6'
-        ,'email6@mail.com'
-        ,'phonenumber6'
-        ,'ssn6'
-        ,'image6.png'
-        ,'2024-11-16'
-        ,1
-        ,@AdminUserIdForStudents  -- CreatedBy (admin user)
-        ,GETUTCDATE()             -- CreatedDate
-        ,NULL                     -- ModifiedBy
-        ,NULL                     -- ModifiedDate
+        'FirstName6',
+        'LastName6',
+        'email6@mail.com',
+        'phonenumber6',
+        'ssn6',
+        'image6.png',
+        '2024-11-16',
+        1,
+        NULL,
+        @AdminUserIdForStudents,
+        GETUTCDATE(),
+        NULL,
+        NULL
     )
 
 END

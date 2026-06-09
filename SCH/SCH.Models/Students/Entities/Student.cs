@@ -24,6 +24,8 @@ namespace SCH.Models.Students.Entities
 
         public bool IsActive { get; set; }
 
+        public int? UserId { get; set; }
+
         public required ICollection<StudentCourseMap> StudentCourseMaps { get; set; }
 
         // Audit properties

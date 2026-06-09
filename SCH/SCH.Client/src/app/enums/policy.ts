@@ -1,0 +1,15 @@
+export enum Policy {
+  ViewStudents = 'ViewStudents',
+  AddStudents = 'AddStudents',
+  EditStudents = 'EditStudents',
+  EditOwnStudent = 'EditOwnStudent',
+  DeleteStudents = 'DeleteStudents',
+  ViewTeachers = 'ViewTeachers',
+  EditTeachers = 'EditTeachers',
+  EditOwnTeacher = 'EditOwnTeacher',
+  DeleteTeachers = 'DeleteTeachers',
+  ViewCourses = 'ViewCourses',
+  AddCourses = 'AddCourses',
+  EditCourses = 'EditCourses',
+  DeleteCourses = 'DeleteCourses',
+}

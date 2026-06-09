@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, signal } from '@angular/core';
+import { Component, Inject, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
 import { Student } from '../../../../../sch/interfaces/student';
 import {
@@ -16,6 +16,9 @@ import { CommonModule, formatDate } from '@angular/common';
 import { Notification } from '../../../../../services/notification';
 import { SecureImage } from '../../../../../pipes/secure-image';
 import { HasUnsavedChanges } from '../../../../../interfaces/has-unsaved-changes';
+import { Auth } from '../../../../../services/auth';
+import { UserApi } from '../../../../../sch/services/user-api';
+import { UserLookup } from '../../../../../sch/interfaces/user-lookup';
 
 @Component({
   selector: 'sch-student-detail-page',
@@ -24,6 +27,7 @@ import { HasUnsavedChanges } from '../../../../../interfaces/has-unsaved-changes
   styleUrl: './student-detail-page.scss',
 })
 export class StudentDetailPage implements OnInit, HasUnsavedChanges {
+  protected readonly auth = inject(Auth);
   protected readonly studentId = signal(0);
   protected readonly student = signal<Student | null>(null);
   protected readonly isStudentLoading = signal(false);
@@ -32,6 +36,8 @@ export class StudentDetailPage implements OnInit, HasUnsavedChanges {
   protected readonly isDeletingImage = signal(false);
   protected readonly isImageChanged = signal(false);
   protected readonly profileImage = signal('');
+  protected readonly availableUsers = signal<UserLookup[]>([]);
+  protected readonly isUsersLoading = signal(false);
 
   protected studentForm: FormGroup;
   private profileImageFile: File | null = null;
@@ -42,6 +48,7 @@ export class StudentDetailPage implements OnInit, HasUnsavedChanges {
     private readonly fb: FormBuilder,
     private readonly studentApi: StudentApi,
     private readonly imageApi: ImageApi,
+    private readonly userApi: UserApi,
     @Inject(APP_CONFIG) private readonly appConfig: AppConfig,
     private readonly notification: Notification
   ) {
@@ -53,14 +60,28 @@ export class StudentDetailPage implements OnInit, HasUnsavedChanges {
       phoneNumber: [null, [Validators.pattern('^[0-9]{10}$')]],
       ssn: [null, [Validators.required, Validators.minLength(2)]],
       startDate: [null],
+      userId: [null],
     });
+
+    // Disable userId for non-admin users
+    if (!this.auth.isAdmin()) {
+      this.studentForm.get('userId')!.disable();
+    }
   }
 
   ngOnInit(): void {
     this._avRoute.params.subscribe((params) => {
       this.studentId.set(+params['id'] || 0);
-
       this.setStudent();
+
+      // Load available users for UserId dropdown (admin only)
+      if (this.auth.isAdmin()) {
+        this.isUsersLoading.set(true);
+        this.userApi.getAvailableUsers('Student').subscribe({
+          next: (users) => this.availableUsers.set(users),
+          error: () => this.availableUsers.set([]),
+        }).add(() => this.isUsersLoading.set(false));
+      }
     });
   }
 
@@ -77,6 +98,7 @@ export class StudentDetailPage implements OnInit, HasUnsavedChanges {
       phoneNumber: null,
       ssn: null,
       startDate: null,
+      userId: null,
     });
   }
 
@@ -129,6 +151,7 @@ export class StudentDetailPage implements OnInit, HasUnsavedChanges {
         phoneNumber: student.phoneNumber,
         ssn: student.ssn,
         startDate: date,
+        userId: student.userId ?? null,
       });
     }
   }
@@ -186,6 +209,7 @@ export class StudentDetailPage implements OnInit, HasUnsavedChanges {
       startDate: new Date(this.studentForm.value.startDate),
       image: image,
       isActive: true,
+      userId: this.auth.isAdmin() ? (this.studentForm.value.userId ?? null) : undefined,
       rowVersion: this.student()?.rowVersion, // Include rowVersion for concurrency check
     };
 
