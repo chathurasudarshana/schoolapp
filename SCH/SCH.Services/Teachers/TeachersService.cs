@@ -112,16 +112,21 @@ namespace SCH.Services.Teachers
 
         private async Task AssignTeacherRoleAsync(int userId)
         {
-            var user = await userManager.FindByIdAsync(userId.ToString());
+            ApplicationUser? user = await userManager.FindByIdAsync(userId.ToString());
             if (user != null && !await userManager.IsInRoleAsync(user, "Teacher"))
+            {
                 await userManager.AddToRoleAsync(user, "Teacher");
+            }
         }
 
         private async Task RemoveTeacherRoleAsync(int userId)
         {
-            var user = await userManager.FindByIdAsync(userId.ToString());
+            ApplicationUser? user = await userManager.FindByIdAsync(userId.ToString());
             if (user != null && await userManager.IsInRoleAsync(user, "Teacher"))
+            {
                 await userManager.RemoveFromRoleAsync(user, "Teacher");
+            }
+
         }
     }
 }

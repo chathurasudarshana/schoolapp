@@ -34,52 +34,59 @@ namespace SCH.API.Controllers
         [HttpGet("available")]
         public async Task<IActionResult> GetAvailableUsersAsync([FromQuery] string entityType)
         {
-            if (entityType != "Student" && entityType != "Teacher")
-                return BadRequest("entityType must be 'Student' or 'Teacher'.");
-
-            // Collect already-linked user IDs for the entity type
-            IEnumerable<int> linkedUserIds;
-            if (entityType == "Student")
+            IActionResult response;
+            if (entityType == "Student" || entityType == "Teacher")
             {
-                var students = await _studentsRepository.GetStudentsAsync(null);
-                linkedUserIds = students
-                    .Where(s => s.UserId.HasValue)
-                    .Select(s => s.UserId!.Value);
+                // Collect already-linked user IDs for the entity type
+                IEnumerable<int> linkedUserIds;
+                if (entityType == "Student")
+                {
+                    var students = await _studentsRepository.GetStudentsAsync(null);
+                    linkedUserIds = students
+                        .Where(s => s.UserId.HasValue)
+                        .Select(s => s.UserId!.Value);
+                }
+                else
+                {
+                    var teachers = await _teachersRepository.GetTeachersAsync();
+                    linkedUserIds = teachers
+                        .Where(t => t.UserId.HasValue)
+                        .Select(t => t.UserId!.Value);
+                }
+
+                var linkedSet = linkedUserIds.ToHashSet();
+
+                // Get all users in the Basic role
+                var basicUsers = await _userManager.GetUsersInRoleAsync("Basic");
+
+                // Filter out: users who already have Admin/Teacher/Student role, or are linked to another record
+                var result = new List<UserDomainDto>();
+                foreach (var user in basicUsers)
+                {
+                    if (linkedSet.Contains(user.Id))
+                        continue;
+
+                    var roles = await _userManager.GetRolesAsync(user);
+                    if (roles.Any(r => r == "Admin" || r == "Teacher" || r == "Student"))
+                        continue;
+
+                    result.Add(new UserDomainDto
+                    {
+                        Id = user.Id,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        FullName = $"{user.FirstName} {user.LastName}".Trim()
+                    });
+                }
+
+                response = Ok(result);
             }
             else
             {
-                var teachers = await _teachersRepository.GetTeachersAsync();
-                linkedUserIds = teachers
-                    .Where(t => t.UserId.HasValue)
-                    .Select(t => t.UserId!.Value);
+                response = BadRequest("entityType must be 'Student' or 'Teacher'.");
             }
 
-            var linkedSet = linkedUserIds.ToHashSet();
-
-            // Get all users in the Basic role
-            var basicUsers = await _userManager.GetUsersInRoleAsync("Basic");
-
-            // Filter out: users who already have Admin/Teacher/Student role, or are linked to another record
-            var result = new List<UserDomainDto>();
-            foreach (var user in basicUsers)
-            {
-                if (linkedSet.Contains(user.Id))
-                    continue;
-
-                var roles = await _userManager.GetRolesAsync(user);
-                if (roles.Any(r => r == "Admin" || r == "Teacher" || r == "Student"))
-                    continue;
-
-                result.Add(new UserDomainDto
-                {
-                    Id = user.Id,
-                    FirstName = user.FirstName,
-                    LastName = user.LastName,
-                    FullName = $"{user.FirstName} {user.LastName}".Trim()
-                });
-            }
-
-            return Ok(result);
+            return response;
         }
     }
 }

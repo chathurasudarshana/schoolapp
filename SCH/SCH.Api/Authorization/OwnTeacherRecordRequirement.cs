@@ -21,10 +21,10 @@ namespace SCH.API.Authorization
             AuthorizationHandlerContext context,
             OwnTeacherRecordRequirement requirement)
         {
-            var ownTeacherIdClaim = context.User.FindFirst("own_teacher_id")?.Value;
+            string? ownTeacherIdClaim = context.User.FindFirst("own_teacher_id")?.Value;
             if (!string.IsNullOrEmpty(ownTeacherIdClaim)) {
-                var routeData = _httpContextAccessor.HttpContext?.GetRouteData();
-                var routeId = routeData?.Values["id"]?.ToString();
+                RouteData? routeData = _httpContextAccessor.HttpContext?.GetRouteData();
+                string? routeId = routeData?.Values["id"]?.ToString();
 
                 if (!string.IsNullOrEmpty(routeId) && ownTeacherIdClaim == routeId) {
                     context.Succeed(requirement);

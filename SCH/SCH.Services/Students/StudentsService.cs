@@ -277,7 +277,7 @@ namespace SCH.Services.Students
 
         private async Task AssignStudentRoleAsync(int userId)
         {
-            var user = await userManager.FindByIdAsync(userId.ToString());
+            ApplicationUser? user = await userManager.FindByIdAsync(userId.ToString());
             if (user != null && !await userManager.IsInRoleAsync(user, "Student"))
             {
                 await userManager.AddToRoleAsync(user, "Student");
@@ -287,7 +287,7 @@ namespace SCH.Services.Students
 
         private async Task RemoveStudentRoleAsync(int userId)
         {
-            var user = await userManager.FindByIdAsync(userId.ToString());
+            ApplicationUser? user = await userManager.FindByIdAsync(userId.ToString());
             if (user != null && await userManager.IsInRoleAsync(user, "Student")) 
             {
                 await userManager.RemoveFromRoleAsync(user, "Student");

@@ -5,6 +5,8 @@ namespace SCH.Services.Auth
     using SCH.Models.Auth.ClientDtos;
     using SCH.Models.Auth.Entities;
     using SCH.Models.Auth.Enums;
+    using SCH.Models.Students.Entities;
+    using SCH.Models.Teachers.Entities;
     using SCH.Models.Users.Entities;
     using SCH.Repositories.Auth;
     using SCH.Repositories.Students;
@@ -73,7 +75,7 @@ namespace SCH.Services.Auth
             _logger.Info($"Login attempt for user: {request.Username}");
 
             // Find user by username or email
-            var user = await _userManager.FindByNameAsync(request.Username) 
+            ApplicationUser? user = await _userManager.FindByNameAsync(request.Username) 
                 ?? await _userManager.FindByEmailAsync(request.Username);
 
             if (user == null)
@@ -89,7 +91,7 @@ namespace SCH.Services.Auth
             }
 
             // Check password
-            var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
+            SignInResult result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
 
             if (result.IsLockedOut)
             {
@@ -108,25 +110,25 @@ namespace SCH.Services.Auth
             await _userManager.UpdateAsync(user);
 
             // Generate tokens
-            var roles = await _userManager.GetRolesAsync(user);
-            var (permissions, ownStudentId, ownTeacherId) = await BuildUserContextAsync(user.Id, roles);
-            var (accessToken, tokenId) = await _tokenService.GenerateAccessTokenAsync(
+            IList<string> roles = await _userManager.GetRolesAsync(user);
+            (List<string> permissions, int? ownStudentId, int? ownTeacherId) = await BuildUserContextAsync(user.Id, roles);
+            (string accessToken, string tokenId) = await _tokenService.GenerateAccessTokenAsync(
                 user.Id, user.UserName!, user.Email!, roles, permissions, ownStudentId, ownTeacherId);
-            var refreshToken = _tokenService.GenerateRefreshToken();
+            string refreshToken = _tokenService.GenerateRefreshToken();
 
             // Store refresh token
-            var refreshTokenExpirationDays = int.Parse(
+            int refreshTokenExpirationDays = int.Parse(
                 _configuration["JwtSettings:RefreshTokenExpirationDays"] ?? "7");
 
             // Revoke any existing non-revoked tokens for same user+IP+UserAgent (only 1 session per browser)
-            var existingTokens = await _refreshTokenRepository
+            List<RefreshToken> existingTokens = await _refreshTokenRepository
                 .GetNonRevokedTokensByUserIdAsync(user.Id);
 
-            var tokensToRevoke = existingTokens
+            List<RefreshToken> tokensToRevoke = existingTokens
                 .Where(t => t.IpAddress == ipAddress && t.UserAgent == userAgent)
                 .ToList();
 
-            foreach (var token in tokensToRevoke)
+            foreach (RefreshToken token in tokensToRevoke)
             {
                 token.IsRevoked = true;
                 token.RevokedDate = DateTime.UtcNow;
@@ -137,7 +139,7 @@ namespace SCH.Services.Auth
                 _logger.Info($"Revoked {tokensToRevoke.Count} existing tokens for user {user.Id} from same browser");
             }
 
-            var refreshTokenEntity = new RefreshToken
+            RefreshToken refreshTokenEntity = new RefreshToken
             {
                 UserId = user.Id,
                 FamilyId = Guid.NewGuid(), // New family for this login session
@@ -191,7 +193,7 @@ namespace SCH.Services.Auth
             _logger.Info($"Registration attempt for username: {request.Username}");
 
             // Check if user exists
-            var existingUser = await _userManager.FindByNameAsync(request.Username);
+            ApplicationUser? existingUser = await _userManager.FindByNameAsync(request.Username);
             if (existingUser != null)
             {
                 throw SCHDomainException.BadRequest("Username already exists");
@@ -204,7 +206,7 @@ namespace SCH.Services.Auth
             }
 
             // Create user
-            var user = new ApplicationUser
+            ApplicationUser user = new ApplicationUser
             {
                 UserName = request.Username,
                 Email = request.Email,
@@ -214,11 +216,11 @@ namespace SCH.Services.Auth
                 CreatedDate = DateTime.UtcNow
             };
 
-            var result = await _userManager.CreateAsync(user, request.Password);
+            IdentityResult result = await _userManager.CreateAsync(user, request.Password);
 
             if (!result.Succeeded)
             {
-                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                string errors = string.Join(", ", result.Errors.Select(e => e.Description));
                 _logger.Warn($"Registration failed for {request.Username}: {errors}");
                 throw SCHDomainException.BadRequest($"Registration failed: {errors}");
             }
@@ -231,7 +233,7 @@ namespace SCH.Services.Auth
             // Wrap in try-catch to rollback ApplicationUser if domain user creation fails
             try
             {
-                var domainUser = new User
+                User domainUser = new User
                 {
                     Id = user.Id,  // Use ApplicationUser.Id as primary key
                     FirstName = request.FirstName,
@@ -280,22 +282,22 @@ namespace SCH.Services.Auth
             _logger.Info("Token refresh attempt");
 
             // Validate access token structure
-            var principal = _tokenService.GetPrincipalFromExpiredToken(request.AccessToken);
+            ClaimsPrincipal? principal = _tokenService.GetPrincipalFromExpiredToken(request.AccessToken);
             if (principal == null)
             {
                 throw SCHDomainException.Unauthorized("Invalid access token");
             }
 
-            var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            string? userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdClaim))
             {
                 throw SCHDomainException.Unauthorized("Invalid token claims");
             }
 
-            var userId = int.Parse(userIdClaim);
+            int userId = int.Parse(userIdClaim);
 
             // Find refresh token in database
-            var storedToken = await _refreshTokenRepository.GetByTokenAsync(request.RefreshToken);
+            RefreshToken? storedToken = await _refreshTokenRepository.GetByTokenAsync(request.RefreshToken);
 
             if (storedToken == null)
             {
@@ -334,7 +336,7 @@ namespace SCH.Services.Auth
             }
 
             // Validate JWT ID matches
-            var jtiClaim = principal.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
+            string? jtiClaim = principal.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
             if (storedToken.JwtId != jtiClaim)
             {
                 _logger.Warn($"JWT ID mismatch for user: {userId}");
@@ -353,15 +355,15 @@ namespace SCH.Services.Auth
             storedToken.UsedDate = DateTime.UtcNow;
 
             // Generate new tokens
-            var user = storedToken.User;
-            var roles = await _userManager.GetRolesAsync(user);
-            var (permissions, ownStudentId, ownTeacherId) = await BuildUserContextAsync(user.Id, roles);
-            var (newAccessToken, newTokenId) = await _tokenService.GenerateAccessTokenAsync(
+            ApplicationUser user = storedToken.User;
+            IList<string> roles = await _userManager.GetRolesAsync(user);
+            (List<string> permissions, int? ownStudentId, int? ownTeacherId) = await BuildUserContextAsync(user.Id, roles);
+            (string newAccessToken, string newTokenId) = await _tokenService.GenerateAccessTokenAsync(
                 user.Id, user.UserName!, user.Email!, roles, permissions, ownStudentId, ownTeacherId);
-            var newRefreshToken = _tokenService.GenerateRefreshToken();
+            string newRefreshToken = _tokenService.GenerateRefreshToken();
 
             // Store new refresh token
-            var newRefreshTokenEntity = new RefreshToken
+            RefreshToken newRefreshTokenEntity = new RefreshToken
             {
                 UserId = user.Id,
                 FamilyId = storedToken.FamilyId, // Inherit family ID
@@ -381,7 +383,7 @@ namespace SCH.Services.Auth
             _logger.Info($"Token refreshed successfully for user: {user.UserName}");
 
             // Calculate remaining seconds until the inherited expiry date
-            var remainingSeconds = (int)(storedToken.ExpiryDate - DateTime.UtcNow).TotalSeconds;
+            int remainingSeconds = (int)(storedToken.ExpiryDate - DateTime.UtcNow).TotalSeconds;
 
             return new LoginResponseDto
             {
@@ -425,7 +427,7 @@ namespace SCH.Services.Auth
                     // Revoke only the current refresh token
                     if (!string.IsNullOrEmpty(currentRefreshToken))
                     {
-                        var token = await _refreshTokenRepository.GetByTokenAsync(currentRefreshToken);
+                        RefreshToken? token = await _refreshTokenRepository.GetByTokenAsync(currentRefreshToken);
                         if (token != null && token.UserId == userId && !token.IsRevoked)
                         {
                             tokensToRevoke.Add(token);
@@ -437,10 +439,10 @@ namespace SCH.Services.Auth
                     // Revoke all tokens in the same family
                     if (!string.IsNullOrEmpty(currentRefreshToken))
                     {
-                        var currentToken = await _refreshTokenRepository.GetByTokenAsync(currentRefreshToken);
+                        RefreshToken? currentToken = await _refreshTokenRepository.GetByTokenAsync(currentRefreshToken);
                         if (currentToken != null && currentToken.UserId == userId)
                         {
-                            var familyTokens = await _refreshTokenRepository.GetNonRevokedTokensByFamilyIdAsync(currentToken.FamilyId);
+                            List<RefreshToken> familyTokens = await _refreshTokenRepository.GetNonRevokedTokensByFamilyIdAsync(currentToken.FamilyId);
                             tokensToRevoke.AddRange(familyTokens);
                         }
                     }
@@ -448,14 +450,14 @@ namespace SCH.Services.Auth
 
                 case LogoutScope.AllDevices:
                     // Revoke all user tokens (all devices)
-                    var allTokens = await _refreshTokenRepository.GetNonRevokedTokensByUserIdAsync(userId);
+                    List<RefreshToken> allTokens = await _refreshTokenRepository.GetNonRevokedTokensByUserIdAsync(userId);
                     tokensToRevoke.AddRange(allTokens);
                     break;
             }
 
             if (tokensToRevoke.Any())
             {
-                foreach (var token in tokensToRevoke)
+                foreach (RefreshToken token in tokensToRevoke)
                 {
                     token.IsRevoked = true;
                     token.RevokedDate = DateTime.UtcNow;
@@ -477,7 +479,7 @@ namespace SCH.Services.Auth
         /// </summary>
         public async Task RevokeTokenAsync(int tokenId, int userId)
         {
-            var token = await _refreshTokenRepository.GetByIdAndUserIdAsync(tokenId, userId);
+            RefreshToken? token = await _refreshTokenRepository.GetByIdAndUserIdAsync(tokenId, userId);
 
             if (token == null)
             {
@@ -498,9 +500,9 @@ namespace SCH.Services.Auth
         /// </summary>
         public async Task<List<SessionDto>> GetActiveSessionsAsync(int userId)
         {
-            var tokens = await _refreshTokenRepository.GetActiveTokensByUserIdAsync(userId);
+            List<RefreshToken> tokens = await _refreshTokenRepository.GetActiveTokensByUserIdAsync(userId);
 
-            var sessions = tokens.Select(rt => new SessionDto
+            List<SessionDto> sessions = tokens.Select(rt => new SessionDto
             {
                 Id = rt.Id,
                 DeviceName = rt.DeviceName,
@@ -519,18 +521,18 @@ namespace SCH.Services.Auth
         /// </summary>
         public async Task ChangePasswordAsync(int userId, ChangePasswordRequestDto request)
         {
-            var user = await _userManager.FindByIdAsync(userId.ToString());
+            ApplicationUser? user = await _userManager.FindByIdAsync(userId.ToString());
             if (user == null)
             {
                 throw SCHDomainException.NotFound("User not found");
             }
 
-            var result = await _userManager.ChangePasswordAsync(
+            IdentityResult result = await _userManager.ChangePasswordAsync(
                 user, request.CurrentPassword, request.NewPassword);
 
             if (!result.Succeeded)
             {
-                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                string errors = string.Join(", ", result.Errors.Select(e => e.Description));
                 throw SCHDomainException.BadRequest($"Password change failed: {errors}");
             }
 
@@ -547,7 +549,7 @@ namespace SCH.Services.Auth
         {
             if (!await _roleManager.RoleExistsAsync(roleName))
             {
-                var role = new ApplicationRole
+                ApplicationRole role = new ApplicationRole
                 {
                     Name = roleName,
                     NormalizedName = roleName.ToUpper(),
@@ -566,7 +568,7 @@ namespace SCH.Services.Auth
             if (string.IsNullOrWhiteSpace(username))
                 return false;
 
-            var user = await _userManager.FindByNameAsync(username);
+            ApplicationUser? user = await _userManager.FindByNameAsync(username);
             return user == null;
         }
 
@@ -578,7 +580,7 @@ namespace SCH.Services.Auth
             if (string.IsNullOrWhiteSpace(email))
                 return false;
 
-            var user = await _userManager.FindByEmailAsync(email);
+            ApplicationUser? user = await _userManager.FindByEmailAsync(email);
             return user == null;
         }
 
@@ -587,9 +589,9 @@ namespace SCH.Services.Auth
         /// </summary>
         private async Task RevokeTokenFamilyAsync(Guid familyId)
         {
-            var familyTokens = await _refreshTokenRepository.GetNonRevokedTokensByFamilyIdAsync(familyId);
+            List<RefreshToken> familyTokens = await _refreshTokenRepository.GetNonRevokedTokensByFamilyIdAsync(familyId);
 
-            foreach (var token in familyTokens)
+            foreach (RefreshToken token in familyTokens)
             {
                 token.IsRevoked = true;
                 token.RevokedDate = DateTime.UtcNow;
@@ -631,16 +633,17 @@ namespace SCH.Services.Auth
             int userId,
             IList<string> roles)
         {
-            var permissions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            HashSet<string> permissions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             // Collect role claims
-            foreach (var roleName in roles)
+            foreach (string roleName in roles)
             {
-                var role = await _roleManager.FindByNameAsync(roleName);
+                ApplicationRole? role = await _roleManager.FindByNameAsync(roleName);
                 if (role != null)
                 {
-                    var roleClaims = await _roleManager.GetClaimsAsync(role);
-                    foreach (var claim in roleClaims.Where(c => c.Type == "permission"))
+                    IList<Claim> roleClaims = await _roleManager.GetClaimsAsync(role);
+                    IList<Claim> permissionClaims = roleClaims.Where(c => c.Type == "permission").ToList();
+                    foreach (Claim claim in permissionClaims)
                     {
                         permissions.Add(claim.Value);
                     }
@@ -649,11 +652,12 @@ namespace SCH.Services.Auth
             }
 
             // Collect direct user claims
-            var appUser = await _userManager.FindByIdAsync(userId.ToString());
+            ApplicationUser? appUser = await _userManager.FindByIdAsync(userId.ToString());
             if (appUser != null)
             {
-                var userClaims = await _userManager.GetClaimsAsync(appUser);
-                foreach (var claim in userClaims.Where(c => c.Type == "permission"))
+                IList<Claim> userClaims = await _userManager.GetClaimsAsync(appUser);
+                IList<Claim> permissionClaims = userClaims.Where(c => c.Type == "permission").ToList();
+                foreach (Claim claim in permissionClaims)
                 {
                     permissions.Add(claim.Value);
                 }
@@ -661,8 +665,8 @@ namespace SCH.Services.Auth
             }
 
             // Resolve own-record IDs
-            var ownStudent = await _studentsRepository.GetStudentByUserIdAsync(userId);
-            var ownTeacher = await _teachersRepository.GetTeacherByUserIdAsync(userId);
+            Student? ownStudent = await _studentsRepository.GetStudentByUserIdAsync(userId);
+            Teacher? ownTeacher = await _teachersRepository.GetTeacherByUserIdAsync(userId);
 
             return (permissions.ToList(), ownStudent?.Id, ownTeacher?.Id);
         }
@@ -673,11 +677,11 @@ namespace SCH.Services.Auth
         /// </summary>
         public async Task RevokeAllUserSessionsAsync(int userId)
         {
-            var tokens = await _refreshTokenRepository.GetNonRevokedTokensByUserIdAsync(userId);
+            List<RefreshToken> tokens = await _refreshTokenRepository.GetNonRevokedTokensByUserIdAsync(userId);
 
             if (tokens.Any())
             {
-                foreach (var token in tokens)
+                foreach (RefreshToken token in tokens)
                 {
                     token.IsRevoked = true;
                     token.RevokedDate = DateTime.UtcNow;

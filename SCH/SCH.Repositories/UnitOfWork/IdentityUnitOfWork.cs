@@ -1,6 +1,7 @@
 namespace SCH.Repositories.UnitOfWork
 {
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.ChangeTracking;
     using SCH.Models.Common.AuditableEntities;
     using SCH.Repositories.DbContexts;
     using SCH.Shared.HttpContext;
@@ -18,11 +19,11 @@ namespace SCH.Repositories.UnitOfWork
 
         protected override void ApplyAuditTracking()
         {
-            var currentUserId = UserInfo?.GetCurrentUserId();
-            var timestamp = DateTime.UtcNow; // Single timestamp for all entities in this transaction
-            var entries = Context.ChangeTracker.Entries<IIdentityAuditableEntity>();
+            int? currentUserId = UserInfo?.GetCurrentUserId();
+            DateTime timestamp = DateTime.UtcNow; // Single timestamp for all entities in this transaction
+            IEnumerable<EntityEntry<IIdentityAuditableEntity>> entries = Context.ChangeTracker.Entries<IIdentityAuditableEntity>();
 
-            foreach (var entry in entries)
+            foreach (EntityEntry<IIdentityAuditableEntity> entry in entries)
             {
                 if (entry.State == EntityState.Added)
                 {

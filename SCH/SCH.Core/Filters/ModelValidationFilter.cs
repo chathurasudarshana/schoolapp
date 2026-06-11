@@ -12,7 +12,7 @@ namespace SCH.Core.Filters
         {
             if (!context.ModelState.IsValid)
             {
-                var errors = context.ModelState
+                Dictionary<string, string[]?> errors = context.ModelState
                     .Where(x => x.Value?.Errors.Count > 0)
                     .ToDictionary(
                         kvp => kvp.Key,
