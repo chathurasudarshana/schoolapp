@@ -26,6 +26,11 @@ namespace SCH.Repositories.Users
         /// Deletes a user
         /// </summary>
         Task DeleteAsync(int id);
+
+        /// <summary>
+        /// Gets the IDs of users who are only in the Basic role
+        /// </summary>
+        Task<List<int>> GetBasicOnlyUserIdsAsync();
     }
 }
 

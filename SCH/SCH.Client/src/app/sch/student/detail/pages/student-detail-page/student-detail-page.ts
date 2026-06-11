@@ -77,7 +77,7 @@ export class StudentDetailPage implements OnInit, HasUnsavedChanges {
       // Load available users for UserId dropdown (admin only)
       if (this.auth.isAdmin()) {
         this.isUsersLoading.set(true);
-        this.userApi.getAvailableUsers('Student').subscribe({
+        this.userApi.getBasicOnlyUsers().subscribe({
           next: (users) => this.availableUsers.set(users),
           error: () => this.availableUsers.set([]),
         }).add(() => this.isUsersLoading.set(false));

@@ -60,7 +60,7 @@ export class TeacherDetailPage implements OnInit, HasUnsavedChanges {
 
       if (this.auth.isAdmin()) {
         this.isUsersLoading.set(true);
-        this.userApi.getAvailableUsers('Teacher').subscribe({
+        this.userApi.getBasicOnlyUsers().subscribe({
           next: (users) => this.availableUsers.set(users),
           error: () => this.availableUsers.set([]),
         }).add(() => this.isUsersLoading.set(false));

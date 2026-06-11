@@ -21,10 +21,9 @@ export class UserApi {
    * Returns Basic-role users not yet linked to a Student or Teacher record.
    * Only accessible to Admin users (enforced on backend).
    */
-  public getAvailableUsers(entityType: 'Student' | 'Teacher'): Observable<UserLookup[]> {
+  public getBasicOnlyUsers(): Observable<UserLookup[]> {
     return this.http.get<UserLookup[]>(
-      `${this.apiUrl}/users/available`,
-      { params: { entityType } }
+      `${this.apiUrl}/users/basic-only`
     );
   }
 }

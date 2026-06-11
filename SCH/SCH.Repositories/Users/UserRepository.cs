@@ -40,6 +40,26 @@ namespace SCH.Repositories.Users
                 _context.Users.Remove(user);
             }
         }
+
+        public async Task<List<int>> GetBasicOnlyUserIdsAsync()
+        {
+            IQueryable<int> linkedUserIds = _context.Student
+                .Where(s => s.UserId != null)
+                .Select(s => s.UserId!.Value)
+                .Union(
+                    _context.Teacher
+                        .Where(t => t.UserId != null)
+                        .Select(t => t.UserId!.Value)
+                );
+
+            List<int> userIds = await _context.Users
+                .AsNoTracking()
+                .Select(u => u.Id)
+                .Except(linkedUserIds)
+                .ToListAsync();
+            return userIds;
+        }
+
     }
 }
 
