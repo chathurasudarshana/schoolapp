@@ -2,6 +2,7 @@ namespace SCH.Services.Teachers
 {
     using AutoMapper;
     using Microsoft.AspNetCore.Identity;
+    using SCH.Models.Auth.Constants;
     using SCH.Models.Auth.Entities;
     using SCH.Models.Teachers.ClientDtos;
     using SCH.Models.Teachers.Entities;
@@ -113,18 +114,18 @@ namespace SCH.Services.Teachers
         private async Task AssignTeacherRoleAsync(int userId)
         {
             ApplicationUser? user = await userManager.FindByIdAsync(userId.ToString());
-            if (user != null && !await userManager.IsInRoleAsync(user, "Teacher"))
+            if (user != null && !await userManager.IsInRoleAsync(user, Role.Teacher))
             {
-                await userManager.AddToRoleAsync(user, "Teacher");
+                await userManager.AddToRoleAsync(user, Role.Teacher);
             }
         }
 
         private async Task RemoveTeacherRoleAsync(int userId)
         {
             ApplicationUser? user = await userManager.FindByIdAsync(userId.ToString());
-            if (user != null && await userManager.IsInRoleAsync(user, "Teacher"))
+            if (user != null && await userManager.IsInRoleAsync(user, Role.Teacher))
             {
-                await userManager.RemoveFromRoleAsync(user, "Teacher");
+                await userManager.RemoveFromRoleAsync(user, Role.Teacher);
             }
 
         }

@@ -1,6 +1,6 @@
-namespace SCH.API.Authorization
+namespace SCH.Models.Auth.Constants
 {
-    public static class PolicyNames
+    public static class Policy
     {
         public const string ViewStudents = "ViewStudents";
         public const string AddStudents = "AddStudents";

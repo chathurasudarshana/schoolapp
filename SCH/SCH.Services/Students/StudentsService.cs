@@ -2,6 +2,7 @@ namespace SCH.Services.Students
 {
     using AutoMapper;
     using Microsoft.AspNetCore.Identity;
+    using SCH.Models.Auth.Constants;
     using SCH.Models.Auth.Entities;
     using SCH.Models.Common.GridEntities;
     using SCH.Models.Courses.Entities;
@@ -278,9 +279,9 @@ namespace SCH.Services.Students
         private async Task AssignStudentRoleAsync(int userId)
         {
             ApplicationUser? user = await userManager.FindByIdAsync(userId.ToString());
-            if (user != null && !await userManager.IsInRoleAsync(user, "Student"))
+            if (user != null && !await userManager.IsInRoleAsync(user, Role.Student))
             {
-                await userManager.AddToRoleAsync(user, "Student");
+                await userManager.AddToRoleAsync(user, Role.Student);
             }
 
         }
@@ -288,9 +289,9 @@ namespace SCH.Services.Students
         private async Task RemoveStudentRoleAsync(int userId)
         {
             ApplicationUser? user = await userManager.FindByIdAsync(userId.ToString());
-            if (user != null && await userManager.IsInRoleAsync(user, "Student")) 
+            if (user != null && await userManager.IsInRoleAsync(user, Role.Student)) 
             {
-                await userManager.RemoveFromRoleAsync(user, "Student");
+                await userManager.RemoveFromRoleAsync(user, Role.Student);
             }
 
         }

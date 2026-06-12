@@ -4,13 +4,13 @@ namespace SCH.API.Controllers
 {
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
-    using SCH.API.Authorization;
     using SCH.Models.Students.ClientDtos;
     using SCH.Models.StudentCourseMap.ClientDtos;
     using SCH.Services.Students;
     using SCH.Shared.Exceptions;
     using System;
     using SCH.Models.Common.GridEntities;
+    using SCH.Models.Auth.Constants;
 
     [Route("api/[controller]")]
     [ApiController]
@@ -26,7 +26,7 @@ namespace SCH.API.Controllers
 
         // GET: api/students/grid
         [HttpGet("grid")]
-        [Authorize(Policy = PolicyNames.ViewStudents)]
+        [Authorize(Policy = Policy.ViewStudents)]
         public async Task<IActionResult> GetStudentGridAsync(
             [FromQuery] StudentGridRequest request)
         {
@@ -37,7 +37,7 @@ namespace SCH.API.Controllers
 
         // GET: api/<StudentsController>
         [HttpGet]
-        [Authorize(Policy = PolicyNames.ViewStudents)]
+        [Authorize(Policy = Policy.ViewStudents)]
         public async Task<IActionResult> GetStudentAsync(
             bool? isActive = null)
         {
@@ -49,7 +49,7 @@ namespace SCH.API.Controllers
 
         // GET api/<StudentsController>/5
         [HttpGet("{id}")]
-        [Authorize(Policy = PolicyNames.ViewStudents)]
+        [Authorize(Policy = Policy.ViewStudents)]
         public async Task<IActionResult> GetStudentAsync(int id)
         {
             IActionResult actionResult;
@@ -75,7 +75,7 @@ namespace SCH.API.Controllers
 
         // POST api/<StudentsController>
         [HttpPost]
-        [Authorize(Policy = PolicyNames.AddStudents)]
+        [Authorize(Policy = Policy.AddStudents)]
         public async Task<IActionResult> PostStudentAsync([FromBody] StudentDto student)
         {
             ValidateCourses(student);
@@ -88,7 +88,7 @@ namespace SCH.API.Controllers
 
         // PATCH api/<StudentsController>/5
         [HttpPatch("{id}")]
-        [Authorize(Policy = PolicyNames.EditStudents)]
+        [Authorize(Policy = Policy.EditStudents)]
         public async Task<IActionResult> PatchStudentAsync(int id, [FromBody] StudentDto student)
         {
             if (id < 1)
@@ -107,7 +107,7 @@ namespace SCH.API.Controllers
 
         // DELETE api/<StudentsController>/5
         [HttpDelete("{id}")]
-        [Authorize(Policy = PolicyNames.DeleteStudents)]
+        [Authorize(Policy = Policy.DeleteStudents)]
         public async Task<IActionResult> Delete(int id)
         {
             if (id < 1)
@@ -122,7 +122,7 @@ namespace SCH.API.Controllers
         }
 
         [HttpGet("{id}/courses")]
-        [Authorize(Policy = PolicyNames.ViewStudents)]
+        [Authorize(Policy = Policy.ViewStudents)]
         public async Task<IActionResult> GetCoursesAsync(int id)
         {
             if (id < 1)
@@ -137,7 +137,7 @@ namespace SCH.API.Controllers
         }
 
         [HttpPut("{id}/courses/{courseId}")]
-        [Authorize(Policy = PolicyNames.EditStudents)]
+        [Authorize(Policy = Policy.EditStudents)]
         public async Task<IActionResult> PutCourseAsync(
             int id, 
             int courseId, 
@@ -167,7 +167,7 @@ namespace SCH.API.Controllers
         }
 
         [HttpDelete("{id}/courses/{courseId}")]
-        [Authorize(Policy = PolicyNames.EditStudents)]
+        [Authorize(Policy = Policy.EditStudents)]
         public async Task<IActionResult> DeleteCourseAsync(int id, int courseId)
         {
             if (id < 1)

@@ -2,12 +2,13 @@ namespace SCH.API.Controllers
 {
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
+    using SCH.Models.Auth.Constants;
     using SCH.Models.Users.ClientDtos;
     using SCH.Services.Users;
 
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = Role.Admin)]
     public class UsersController : ControllerBase
     {
         private readonly IUsersService _usersService;

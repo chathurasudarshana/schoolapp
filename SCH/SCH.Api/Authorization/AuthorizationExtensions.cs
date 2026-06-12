@@ -1,6 +1,7 @@
 namespace SCH.API.Authorization
 {
     using Microsoft.AspNetCore.Authorization;
+    using SCH.Models.Auth.Constants;
 
     public static class AuthorizationExtensions
     {
@@ -15,82 +16,82 @@ namespace SCH.API.Authorization
                 // ---- Student policies ----
 
                 // Any role with students:read, or Admin, or Teacher role, or Student role
-                options.AddPolicy(PolicyNames.ViewStudents, policy =>
+                options.AddPolicy(Policy.ViewStudents, policy =>
                     policy.RequireAssertion(ctx =>
-                        ctx.User.IsInRole("Admin") ||
-                        ctx.User.IsInRole("Teacher") ||
-                        ctx.User.IsInRole("Student") ||
-                        ctx.User.HasClaim(Permissions.ClaimType, Permissions.Students.Read)));
+                        ctx.User.IsInRole(Role.Admin) ||
+                        ctx.User.IsInRole(Role.Teacher) ||
+                        ctx.User.IsInRole(Role.Student) ||
+                        ctx.User.HasClaim(Permission.ClaimType, Permission.Student.Read)));
 
                 // Admin or Teacher (has students:add claim via role)
-                options.AddPolicy(PolicyNames.AddStudents, policy =>
+                options.AddPolicy(Policy.AddStudents, policy =>
                     policy.RequireAssertion(ctx =>
-                        ctx.User.IsInRole("Admin") ||
-                        ctx.User.HasClaim(Permissions.ClaimType, Permissions.Students.Add)));
+                        ctx.User.IsInRole(Role.Admin) ||
+                        ctx.User.HasClaim(Permission.ClaimType, Permission.Student.Add)));
 
                 // Admin, Teacher (students:write), or any user editing their own record (students:write-own)
-                options.AddPolicy(PolicyNames.EditStudents, policy =>
+                options.AddPolicy(Policy.EditStudents, policy =>
                     policy.RequireAssertion(ctx =>
-                        ctx.User.IsInRole("Admin") ||
-                        ctx.User.HasClaim(Permissions.ClaimType, Permissions.Students.Write) ||
-                        ctx.User.HasClaim(Permissions.ClaimType, Permissions.Students.WriteOwn)));
+                        ctx.User.IsInRole(Role.Admin) ||
+                        ctx.User.HasClaim(Permission.ClaimType, Permission.Student.Write) ||
+                        ctx.User.HasClaim(Permission.ClaimType, Permission.Student.WriteOwn)));
 
                 // Edit own student record only (Student role)
-                options.AddPolicy(PolicyNames.EditOwnStudent, policy =>
+                options.AddPolicy(Policy.EditOwnStudent, policy =>
                     policy.RequireAssertion(ctx =>
-                        ctx.User.IsInRole("Admin") ||
-                        ctx.User.HasClaim(Permissions.ClaimType, Permissions.Students.Write))
+                        ctx.User.IsInRole(Role.Admin) ||
+                        ctx.User.HasClaim(Permission.ClaimType, Permission.Student.Write))
                     .AddRequirements(new OwnStudentRecordRequirement()));
 
                 // Admin only
-                options.AddPolicy(PolicyNames.DeleteStudents, policy =>
-                    policy.RequireRole("Admin"));
+                options.AddPolicy(Policy.DeleteStudents, policy =>
+                    policy.RequireRole(Role.Admin));
 
                 // ---- Teacher policies ----
 
-                options.AddPolicy(PolicyNames.ViewTeachers, policy =>
+                options.AddPolicy(Policy.ViewTeachers, policy =>
                     policy.RequireAssertion(ctx =>
-                        ctx.User.IsInRole("Admin") ||
-                        ctx.User.IsInRole("Teacher") ||
-                        ctx.User.HasClaim(Permissions.ClaimType, Permissions.Teachers.Read)));
+                        ctx.User.IsInRole(Role.Admin) ||
+                        ctx.User.IsInRole(Role.Teacher) ||
+                        ctx.User.HasClaim(Permission.ClaimType, Permission.Teacher.Read)));
 
                 // Admin, or Teacher editing their own record (teachers:write-own)
-                options.AddPolicy(PolicyNames.EditTeachers, policy =>
+                options.AddPolicy(Policy.EditTeachers, policy =>
                     policy.RequireAssertion(ctx =>
-                        ctx.User.IsInRole("Admin") ||
-                        ctx.User.HasClaim(Permissions.ClaimType, Permissions.Teachers.Write) ||
-                        ctx.User.HasClaim(Permissions.ClaimType, Permissions.Teachers.WriteOwn)));
+                        ctx.User.IsInRole(Role.Admin) ||
+                        ctx.User.HasClaim(Permission.ClaimType, Permission.Teacher.Write) ||
+                        ctx.User.HasClaim(Permission.ClaimType, Permission.Teacher.WriteOwn)));
 
-                options.AddPolicy(PolicyNames.EditOwnTeacher, policy =>
+                options.AddPolicy(Policy.EditOwnTeacher, policy =>
                     policy.RequireAssertion(ctx =>
-                        ctx.User.IsInRole("Admin") ||
-                        ctx.User.HasClaim(Permissions.ClaimType, Permissions.Teachers.Write))
+                        ctx.User.IsInRole(Role.Admin) ||
+                        ctx.User.HasClaim(Permission.ClaimType, Permission.Teacher.Write))
                     .AddRequirements(new OwnTeacherRecordRequirement()));
 
-                options.AddPolicy(PolicyNames.DeleteTeachers, policy =>
-                    policy.RequireRole("Admin"));
+                options.AddPolicy(Policy.DeleteTeachers, policy =>
+                    policy.RequireRole(Role.Admin));
 
                 // ---- Course policies ----
 
-                options.AddPolicy(PolicyNames.ViewCourses, policy =>
+                options.AddPolicy(Policy.ViewCourses, policy =>
                     policy.RequireAssertion(ctx =>
-                        ctx.User.IsInRole("Admin") ||
-                        ctx.User.IsInRole("Teacher") ||
-                        ctx.User.IsInRole("Student") ||
-                        ctx.User.HasClaim(Permissions.ClaimType, Permissions.Courses.Read)));
+                        ctx.User.IsInRole(Role.Admin) ||
+                        ctx.User.IsInRole(Role.Teacher) ||
+                        ctx.User.IsInRole(Role.Student) ||
+                        ctx.User.HasClaim(Permission.ClaimType, Permission.Course.Read)));
 
-                options.AddPolicy(PolicyNames.AddCourses, policy =>
+                options.AddPolicy(Policy.AddCourses, policy =>
                     policy.RequireAssertion(ctx =>
-                        ctx.User.IsInRole("Admin") ||
-                        ctx.User.HasClaim(Permissions.ClaimType, Permissions.Courses.Add)));
+                        ctx.User.IsInRole(Role.Admin) ||
+                        ctx.User.HasClaim(Permission.ClaimType, Permission.Course.Add)));
 
-                options.AddPolicy(PolicyNames.EditCourses, policy =>
+                options.AddPolicy(Policy.EditCourses, policy =>
                     policy.RequireAssertion(ctx =>
-                        ctx.User.IsInRole("Admin") ||
-                        ctx.User.HasClaim(Permissions.ClaimType, Permissions.Courses.Write)));
+                        ctx.User.IsInRole(Role.Admin) ||
+                        ctx.User.HasClaim(Permission.ClaimType, Permission.Course.Write)));
 
-                options.AddPolicy(PolicyNames.DeleteCourses, policy =>
-                    policy.RequireRole("Admin"));
+                options.AddPolicy(Policy.DeleteCourses, policy =>
+                    policy.RequireRole(Role.Admin));
             });
 
             return services;

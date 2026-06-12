@@ -10,6 +10,7 @@ import { Auth } from '../services/auth';
 import { Observable, of } from 'rxjs';
 import { filter, take, switchMap } from 'rxjs/operators';
 import { toObservable } from '@angular/core/rxjs-interop';
+import { Role } from '../enums';
 
 /**
  * Teacher detail guard.
@@ -39,7 +40,7 @@ export const teacherDetailGuard: CanActivateFn = (
         return of(true);
       }
 
-      if (authService.hasRole('Teacher')) {
+      if (authService.hasRole(Role.Teacher)) {
         const routeId = Number(route.paramMap.get('id'));
         if (routeId && routeId === authService.ownTeacherId()) {
           return of(true);

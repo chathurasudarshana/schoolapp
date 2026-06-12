@@ -3,6 +3,7 @@ namespace SCH.Services.Auth
     using Microsoft.AspNetCore.Identity;
     using Microsoft.Extensions.Configuration;
     using SCH.Models.Auth.ClientDtos;
+    using SCH.Models.Auth.Constants;
     using SCH.Models.Auth.Entities;
     using SCH.Models.Auth.Enums;
     using SCH.Models.Students.Entities;
@@ -226,8 +227,8 @@ namespace SCH.Services.Auth
             }
 
             // Assign default "Basic" role
-            await EnsureRoleExistsAsync("Basic");
-            await _userManager.AddToRoleAsync(user, "Basic");
+            await EnsureRoleExistsAsync(Role.Basic);
+            await _userManager.AddToRoleAsync(user, Role.Basic);
 
             // Create corresponding domain user
             // Wrap in try-catch to rollback ApplicationUser if domain user creation fails

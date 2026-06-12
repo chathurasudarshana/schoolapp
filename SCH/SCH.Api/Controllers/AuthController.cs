@@ -3,6 +3,7 @@ namespace SCH.API.Controllers
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using SCH.Models.Auth.ClientDtos;
+    using SCH.Models.Auth.Constants;
     using SCH.Models.Auth.Enums;
     using SCH.Services.Auth;
     using System.Security.Claims;
@@ -205,7 +206,7 @@ namespace SCH.API.Controllers
         /// </summary>
         /// <returns>Success message</returns>
         [HttpGet("test-admin")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = Role.Admin)]
         public IActionResult TestAdmin()
         {
             return Ok(new { message = "You are an admin!" });

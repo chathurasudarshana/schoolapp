@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using SCH.Models.Auth.Constants;
 using SCH.Models.Auth.Entities;
 using SCH.Models.Users.ClientDtos;
 using SCH.Repositories.Users;
@@ -28,7 +29,7 @@ namespace SCH.Services.Users
                 .GetBasicOnlyUserIdsAsync();
 
             // Get all users in the Basic role
-            IList<ApplicationUser> basicUsers = await _userManager.GetUsersInRoleAsync("Basic");
+            IList<ApplicationUser> basicUsers = await _userManager.GetUsersInRoleAsync(Role.Basic);
 
             // Filter out: users who already have Admin/Teacher/Student role, or are linked to another record
             List<UserDomainDto> result = new List<UserDomainDto>();
@@ -41,7 +42,7 @@ namespace SCH.Services.Users
                 }
 
                 IList<string> roles = await _userManager.GetRolesAsync(user);
-                if (roles.Any(r => r == "Admin" || r == "Teacher" || r == "Student"))
+                if (roles.Any(r => r == Role.Admin || r == Role.Teacher || r == Role.Student))
                 {
                     continue;
                 }

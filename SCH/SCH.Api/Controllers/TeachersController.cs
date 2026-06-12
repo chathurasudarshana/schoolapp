@@ -5,6 +5,7 @@ namespace SCH.API.Controllers
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using SCH.API.Authorization;
+    using SCH.Models.Auth.Constants;
     using SCH.Models.Teachers.ClientDtos;
     using SCH.Services.Teachers;
     using SCH.Shared.Exceptions;
@@ -23,7 +24,7 @@ namespace SCH.API.Controllers
 
         // GET: api/<TeachersController>
         [HttpGet]
-        [Authorize(Policy = PolicyNames.ViewTeachers)]
+        [Authorize(Policy = Policy.ViewTeachers)]
         public async Task<IActionResult> GetTeacherAsync()
         {
             List<TeacherDto> teachers = await teachersService
@@ -34,7 +35,7 @@ namespace SCH.API.Controllers
 
         // GET api/<TeachersController>/5
         [HttpGet("{id}")]
-        [Authorize(Policy = PolicyNames.ViewTeachers)]
+        [Authorize(Policy = Policy.ViewTeachers)]
         public async Task<IActionResult> GetTeacherAsync(int id)
         {
             IActionResult actionResult;
@@ -60,7 +61,7 @@ namespace SCH.API.Controllers
 
         // POST api/<TeachersController>
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = Role.Admin)]
         public async Task<IActionResult> PostTeacherAsync([FromBody] TeacherDto teacher)
         {
             int id = await teachersService
@@ -71,7 +72,7 @@ namespace SCH.API.Controllers
 
         // PATCH api/<TeachersController>/5
         [HttpPatch("{id}")]
-        [Authorize(Policy = PolicyNames.EditTeachers)]
+        [Authorize(Policy = Policy.EditTeachers)]
         public async Task<IActionResult> PatchTeacherAsync(int id, [FromBody] TeacherDto teacher)
         {
             if (id < 1)
@@ -88,7 +89,7 @@ namespace SCH.API.Controllers
 
         // DELETE api/<TeachersController>/5
         [HttpDelete("{id}")]
-        [Authorize(Policy = PolicyNames.DeleteTeachers)]
+        [Authorize(Policy = Policy.DeleteTeachers)]
         public async Task<IActionResult> Delete(int id)
         {
             if (id < 1)

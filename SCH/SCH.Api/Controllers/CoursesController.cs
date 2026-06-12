@@ -4,7 +4,7 @@ namespace SCH.API.Controllers
 {
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
-    using SCH.API.Authorization;
+    using SCH.Models.Auth.Constants;
     using SCH.Models.Courses.ClientDtos;
     using SCH.Services.Courses;
     using SCH.Shared.Exceptions;
@@ -23,7 +23,7 @@ namespace SCH.API.Controllers
 
         // GET: api/<CoursesController>
         [HttpGet]
-        [Authorize(Policy = PolicyNames.ViewCourses)]
+        [Authorize(Policy = Policy.ViewCourses)]
         public async Task<IActionResult> GetCourseAsync()
         {
             List<CourseDto> courses = await coursesService
@@ -34,7 +34,7 @@ namespace SCH.API.Controllers
 
         // GET api/<CoursesController>/5
         [HttpGet("{id}")]
-        [Authorize(Policy = PolicyNames.ViewCourses)]
+        [Authorize(Policy = Policy.ViewCourses)]
         public async Task<IActionResult> GetCourseAsync(int id)
         {
             IActionResult actionResult;
@@ -60,7 +60,7 @@ namespace SCH.API.Controllers
 
         // POST api/<CoursesController>
         [HttpPost]
-        [Authorize(Policy = PolicyNames.AddCourses)]
+        [Authorize(Policy = Policy.AddCourses)]
         public async Task<IActionResult> PostCourseAsync([FromBody] CourseDto course)
         {
             int id = await coursesService
@@ -71,7 +71,7 @@ namespace SCH.API.Controllers
 
         // PUT api/<CoursesController>/5
         [HttpPatch("{id}")]
-        [Authorize(Policy = PolicyNames.EditCourses)]
+        [Authorize(Policy = Policy.EditCourses)]
         public async Task<IActionResult> PatchCourseAsync(int id, [FromBody] CourseDto course)
         {
             if (id < 1)
@@ -88,7 +88,7 @@ namespace SCH.API.Controllers
 
         // DELETE api/<CoursesController>/5
         [HttpDelete("{id}")]
-        [Authorize(Policy = PolicyNames.DeleteCourses)]
+        [Authorize(Policy = Policy.DeleteCourses)]
         public async Task<IActionResult> Delete(int id)
         {
             if (id < 1)

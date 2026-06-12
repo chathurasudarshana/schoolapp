@@ -10,6 +10,7 @@ import { Auth } from '../services/auth';
 import { Observable, of } from 'rxjs';
 import { filter, take, switchMap } from 'rxjs/operators';
 import { toObservable } from '@angular/core/rxjs-interop';
+import { Role } from '../enums';
 
 /**
  * Student detail guard.
@@ -34,11 +35,11 @@ export const studentDetailGuard: CanActivateFn = (
         return of(router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } }));
       }
 
-      if (authService.isAdmin() || authService.hasRole('Teacher')) {
+      if (authService.isAdmin() || authService.hasRole(Role.Teacher)) {
         return of(true);
       }
 
-      if (authService.hasRole('Student')) {
+      if (authService.hasRole(Role.Student)) {
         const routeId = Number(route.paramMap.get('id'));
         if (routeId && routeId === authService.ownStudentId()) {
           return of(true);

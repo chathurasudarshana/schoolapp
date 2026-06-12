@@ -9,6 +9,7 @@ import { Observable, tap, catchError, throwError } from 'rxjs';
 import { APP_CONFIG } from '../injection-tokens/app-config.token';
 import { LogoutScope } from '../enums/logout-scope';
 import { Policy } from '../enums/policy';
+import { Permission, Role } from '../enums';
 
 /**
  * Authentication service that manages user state, tokens, and auth logic
@@ -46,10 +47,10 @@ export class Auth {
   public readonly isAuthenticated = computed(() => this.isAuthenticatedSignal());
   public readonly isRefreshing = computed(() => this.isRefreshingSignal());
   public readonly isAdmin = computed(() =>
-    this.currentUser()?.roles.includes('Admin') ?? false
+    this.currentUser()?.roles.includes(Role.Admin) ?? false
   );
   public readonly isBasic = computed(() =>
-    this.currentUser()?.roles.includes('Basic') ?? false
+    this.currentUser()?.roles.includes(Role.Basic) ?? false
   );
   public readonly permissions = computed(() =>
     this.currentUser()?.permissions ?? []
@@ -431,7 +432,7 @@ export class Auth {
   }
 
   /**
-   * Evaluate a named policy against the current user's roles and permissions.
+   * Evaluate a named policy against the current userS roles and permissions.
    * Mirrors the backend policy definitions in AuthorizationExtensions.cs.
    */
   public hasPolicy(policy: Policy): boolean {
@@ -442,31 +443,35 @@ export class Auth {
 
     switch (policy) {
       case Policy.ViewStudents:
-        return perms.includes('students:read');
+        return perms.includes(Permission.StudentRead);
       case Policy.AddStudents:
-        return perms.includes('students:add');
+        return perms.includes(Permission.StudentAdd);
       case Policy.EditStudents:
-        return perms.includes('students:write') || perms.includes('students:write-own');
+        return perms.includes(Permission.StudentWrite) 
+          || perms.includes(Permission.StudentWriteOwn);
       case Policy.EditOwnStudent:
-        return perms.includes('students:write') || perms.includes('students:write-own');
+        return perms.includes(Permission.StudentWrite) 
+          || perms.includes(Permission.StudentWriteOwn);
       case Policy.DeleteStudents:
-        return perms.includes('students:write');
+        return perms.includes(Permission.StudentWrite);
       case Policy.ViewTeachers:
-        return perms.includes('teachers:read');
+        return perms.includes(Permission.TeacherRead);
       case Policy.EditTeachers:
-        return perms.includes('teachers:write') || perms.includes('teachers:write-own');
+        return perms.includes(Permission.TeacherWrite) 
+          || perms.includes(Permission.TeacherWriteOwn);
       case Policy.EditOwnTeacher:
-        return perms.includes('teachers:write') || perms.includes('teachers:write-own');
+        return perms.includes(Permission.TeacherWrite) 
+          || perms.includes(Permission.TeacherWriteOwn);
       case Policy.DeleteTeachers:
-        return perms.includes('teachers:write');
+        return perms.includes(Permission.TeacherWrite);
       case Policy.ViewCourses:
-        return perms.includes('courses:read');
+        return perms.includes(Permission.CourseRead);
       case Policy.AddCourses:
-        return perms.includes('courses:add');
+        return perms.includes(Permission.CourseAdd);
       case Policy.EditCourses:
-        return perms.includes('courses:write');
+        return perms.includes(Permission.CourseWrite);
       case Policy.DeleteCourses:
-        return perms.includes('courses:write');
+        return perms.includes(Permission.CourseWrite);
       default:
         return false;
     }
