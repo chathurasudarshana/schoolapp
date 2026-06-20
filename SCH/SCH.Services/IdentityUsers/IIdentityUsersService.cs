@@ -1,8 +1,8 @@
-﻿namespace SCH.Services.Users
+﻿namespace SCH.Services.IdentityUsers
 {
     using SCH.Models.Users.ClientDtos;
 
-    public interface IUsersService: IService
+    public interface IIdentityUsersService : IService
     {
         Task<List<UserDomainDto>> GetBasicOnlyUsersAsync();
     }

@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
 import { UserLookup } from '../interfaces/user-lookup';
 
 @Injectable()
-export class UserApi {
+export class IdentityUserApi {
 
   private readonly apiUrl: string;
 
@@ -23,7 +23,7 @@ export class UserApi {
    */
   public getBasicOnlyUsers(): Observable<UserLookup[]> {
     return this.http.get<UserLookup[]>(
-      `${this.apiUrl}/users/basic-only`
+      `${this.apiUrl}/identityusers/basic-only`
     );
   }
 }

@@ -17,7 +17,7 @@ import { Notification } from '../../../../../services/notification';
 import { SecureImage } from '../../../../../pipes/secure-image';
 import { HasUnsavedChanges } from '../../../../../interfaces/has-unsaved-changes';
 import { Auth } from '../../../../../services/auth';
-import { UserApi } from '../../../../../sch/services/user-api';
+import { IdentityUserApi } from '../../../../../sch/services/identity-user-api';
 import { UserLookup } from '../../../../../sch/interfaces/user-lookup';
 
 @Component({
@@ -48,7 +48,7 @@ export class StudentDetailPage implements OnInit, HasUnsavedChanges {
     private readonly fb: FormBuilder,
     private readonly studentApi: StudentApi,
     private readonly imageApi: ImageApi,
-    private readonly userApi: UserApi,
+    private readonly identityUserApi: IdentityUserApi,
     @Inject(APP_CONFIG) private readonly appConfig: AppConfig,
     private readonly notification: Notification
   ) {
@@ -77,7 +77,7 @@ export class StudentDetailPage implements OnInit, HasUnsavedChanges {
       // Load available users for UserId dropdown (admin only)
       if (this.auth.isAdmin()) {
         this.isUsersLoading.set(true);
-        this.userApi.getBasicOnlyUsers().subscribe({
+        this.identityUserApi.getBasicOnlyUsers().subscribe({
           next: (users) => this.availableUsers.set(users),
           error: () => this.availableUsers.set([]),
         }).add(() => this.isUsersLoading.set(false));

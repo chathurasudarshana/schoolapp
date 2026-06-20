@@ -4,19 +4,19 @@ namespace SCH.API.Controllers
     using Microsoft.AspNetCore.Mvc;
     using SCH.Models.Auth.Constants;
     using SCH.Models.Users.ClientDtos;
-    using SCH.Services.Users;
+    using SCH.Services.IdentityUsers;
 
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Roles = Role.Admin)]
-    public class UsersController : ControllerBase
+    public class IdentityUsersController : ControllerBase
     {
-        private readonly IUsersService _usersService;
+        private readonly IIdentityUsersService _identityUsersService;
 
-        public UsersController(
-                IUsersService usersService)
+        public IdentityUsersController(
+            IIdentityUsersService identityUsersService)
         {
-            _usersService = usersService;
+            _identityUsersService = identityUsersService;
         }
 
         /// <summary>
@@ -26,7 +26,8 @@ namespace SCH.API.Controllers
         [HttpGet("basic-only")]
         public async Task<IActionResult> GetBasicOnlyUsersAsync()
         {
-            List<UserDomainDto> result = await _usersService.GetBasicOnlyUsersAsync();
+            List<UserDomainDto> result = await _identityUsersService
+                .GetBasicOnlyUsersAsync();
             return Ok(result);
         }
     }

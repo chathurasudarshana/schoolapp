@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
 import { Notification } from '../../../../../services/notification';
 import { HasUnsavedChanges } from '../../../../../interfaces/has-unsaved-changes';
 import { Auth } from '../../../../../services/auth';
-import { UserApi } from '../../../../../sch/services/user-api';
+import { IdentityUserApi } from '../../../../../sch/services/identity-user-api';
 import { UserLookup } from '../../../../../sch/interfaces/user-lookup';
 
 
@@ -39,7 +39,7 @@ export class TeacherDetailPage implements OnInit, HasUnsavedChanges {
     private readonly router: Router,
     private readonly fb: FormBuilder,
     private readonly teacherApi: TeacherApi,
-    private readonly userApi: UserApi,
+    private readonly identityUserApi: IdentityUserApi,
     private readonly notification: Notification
   ) {
     this.teacherForm = this.fb.group({
@@ -60,7 +60,7 @@ export class TeacherDetailPage implements OnInit, HasUnsavedChanges {
 
       if (this.auth.isAdmin()) {
         this.isUsersLoading.set(true);
-        this.userApi.getBasicOnlyUsers().subscribe({
+        this.identityUserApi.getBasicOnlyUsers().subscribe({
           next: (users) => this.availableUsers.set(users),
           error: () => this.availableUsers.set([]),
         }).add(() => this.isUsersLoading.set(false));

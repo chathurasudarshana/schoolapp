@@ -7,7 +7,7 @@ import { CourseApi } from "./services/course-api";
 import { teacherRoutes } from "./teacher/teacher.routes";
 import { TeacherApi } from "./services/teacher-api";
 import { dashboardRoutes } from "./dashboard/dashboard.routes";
-import { UserApi } from "./services/user-api";
+import { IdentityUserApi } from "./services/identity-user-api";
 
 export const schRoutes: Routes = [
   {
@@ -35,8 +35,8 @@ export const schRoutes: Routes = [
         useClass: CourseApi
       },
       {
-        provide: UserApi,
-        useClass: UserApi
+        provide: IdentityUserApi,
+        useClass: IdentityUserApi
       }
     ],
     children: studentRoutes
@@ -67,8 +67,8 @@ export const schRoutes: Routes = [
         useClass: ImageApi
       },
       {
-        provide: UserApi,
-        useClass: UserApi
+        provide: IdentityUserApi,
+        useClass: IdentityUserApi
       }
     ],
     children: teacherRoutes

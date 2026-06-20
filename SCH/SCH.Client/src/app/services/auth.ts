@@ -436,45 +436,61 @@ export class Auth {
    * Mirrors the backend policy definitions in AuthorizationExtensions.cs.
    */
   public hasPolicy(policy: Policy): boolean {
+    let hasPolicy = false;
     const isAdmin = this.isAdmin();
-    if (isAdmin) return true;
+    if (isAdmin) {
+      hasPolicy = true;
+    } else {
+      const perms = this.permissions();
 
-    const perms = this.permissions();
-
-    switch (policy) {
-      case Policy.ViewStudents:
-        return perms.includes(Permission.StudentRead);
-      case Policy.AddStudents:
-        return perms.includes(Permission.StudentAdd);
-      case Policy.EditStudents:
-        return perms.includes(Permission.StudentWrite) 
-          || perms.includes(Permission.StudentWriteOwn);
-      case Policy.EditOwnStudent:
-        return perms.includes(Permission.StudentWrite) 
-          || perms.includes(Permission.StudentWriteOwn);
-      case Policy.DeleteStudents:
-        return perms.includes(Permission.StudentWrite);
-      case Policy.ViewTeachers:
-        return perms.includes(Permission.TeacherRead);
-      case Policy.EditTeachers:
-        return perms.includes(Permission.TeacherWrite) 
-          || perms.includes(Permission.TeacherWriteOwn);
-      case Policy.EditOwnTeacher:
-        return perms.includes(Permission.TeacherWrite) 
-          || perms.includes(Permission.TeacherWriteOwn);
-      case Policy.DeleteTeachers:
-        return perms.includes(Permission.TeacherWrite);
-      case Policy.ViewCourses:
-        return perms.includes(Permission.CourseRead);
-      case Policy.AddCourses:
-        return perms.includes(Permission.CourseAdd);
-      case Policy.EditCourses:
-        return perms.includes(Permission.CourseWrite);
-      case Policy.DeleteCourses:
-        return perms.includes(Permission.CourseWrite);
-      default:
-        return false;
+      switch (policy) {
+        case Policy.ViewStudents:
+          hasPolicy = perms.includes(Permission.StudentRead);
+          break;
+        case Policy.AddStudents:
+          hasPolicy = perms.includes(Permission.StudentAdd);
+          break;
+        case Policy.EditStudents:
+          hasPolicy = perms.includes(Permission.StudentWrite) 
+            || perms.includes(Permission.StudentWriteOwn);
+          break;
+        case Policy.EditOwnStudent:
+          hasPolicy = perms.includes(Permission.StudentWrite) 
+            || perms.includes(Permission.StudentWriteOwn);
+          break;
+        case Policy.DeleteStudents:
+          hasPolicy = perms.includes(Permission.StudentWrite);
+          break;
+        case Policy.ViewTeachers:
+          hasPolicy = perms.includes(Permission.TeacherRead);
+          break;
+        case Policy.EditTeachers:
+          hasPolicy = perms.includes(Permission.TeacherWrite) 
+            || perms.includes(Permission.TeacherWriteOwn);
+          break;
+        case Policy.EditOwnTeacher:
+          hasPolicy = perms.includes(Permission.TeacherWrite) 
+            || perms.includes(Permission.TeacherWriteOwn);
+          break;
+        case Policy.DeleteTeachers:
+          hasPolicy = perms.includes(Permission.TeacherWrite);
+          break;
+        case Policy.ViewCourses:
+          hasPolicy = perms.includes(Permission.CourseRead);
+          break;
+        case Policy.AddCourses:
+          hasPolicy = perms.includes(Permission.CourseAdd);
+          break;
+        case Policy.EditCourses:
+          hasPolicy = perms.includes(Permission.CourseWrite);
+          break;
+        case Policy.DeleteCourses:
+          hasPolicy = perms.includes(Permission.CourseWrite);
+          break;
+      }
     }
+
+    return hasPolicy;
   }
 
   /**
