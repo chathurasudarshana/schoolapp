@@ -42,9 +42,6 @@
                 class="form-control"
             >
                 <option [value]="null">-- None --</option>
-                @if (teacher()?.userId) {
-                <option [value]="teacher()!.userId">{{ teacher()!.userId }}</option>
-                }
                 @for (u of availableUsers(); track u.id) {
                 <option [value]="u.id">{{ u.fullName }} ({{ u.id }})</option>
                 }
@@ -57,7 +54,7 @@
             <input
                 id="userIdReadonly"
                 class="form-control"
-                [value]="teacher()?.userId ?? 'Not linked'"
+                [value]="teacher()?.user?.fullName ?? 'Not linked'"
                 disabled
             />
         </div>

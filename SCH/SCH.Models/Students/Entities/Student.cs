@@ -3,6 +3,7 @@ namespace SCH.Models.Students.Entities
     using SCH.Models.Common.AuditableEntities;
     using SCH.Models.Common.ConcurrencyEntities;
     using SCH.Models.StudentCourseMap.Entities;
+    using SCH.Models.Users.Entities;
 
     public class Student : IAuditableEntity, IConcurrencyEntity
     {
@@ -25,6 +26,9 @@ namespace SCH.Models.Students.Entities
         public bool IsActive { get; set; }
 
         public int? UserId { get; set; }
+
+        public User? User { get; set; }
+
 
         public required ICollection<StudentCourseMap> StudentCourseMaps { get; set; }
 

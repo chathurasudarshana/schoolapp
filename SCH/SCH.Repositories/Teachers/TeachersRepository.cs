@@ -26,6 +26,7 @@ namespace SCH.Repositories.Teachers
             Teacher? teacher = await Context
                 .Teacher
                 .AsNoTracking()
+                .Include(t => t.User)
                 .SingleOrDefaultAsync(s => s.Id == id);
 
             return teacher;

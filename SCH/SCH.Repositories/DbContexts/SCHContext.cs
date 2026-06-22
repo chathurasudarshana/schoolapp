@@ -99,7 +99,7 @@ namespace SCH.Repositories.DbContexts
 
                 // UserId: links the identity user who owns this student record
                 entity.Property(e => e.UserId).IsRequired(false);
-                entity.HasOne<User>()
+                entity.HasOne(s => s.User)
                     .WithMany()
                     .HasForeignKey(e => e.UserId)
                     .OnDelete(DeleteBehavior.SetNull);
@@ -153,7 +153,7 @@ namespace SCH.Repositories.DbContexts
 
                 // UserId: links the identity user who owns this teacher record
                 entity.Property(e => e.UserId).IsRequired(false);
-                entity.HasOne<User>()
+                entity.HasOne(t => t.User)
                     .WithMany()
                     .HasForeignKey(e => e.UserId)
                     .OnDelete(DeleteBehavior.SetNull);

@@ -2,6 +2,7 @@ namespace SCH.Models.Teachers.Entities
 {
     using SCH.Models.Common.AuditableEntities;
     using SCH.Models.Common.ConcurrencyEntities;
+    using SCH.Models.Users.Entities;
 
     public class Teacher : IAuditableEntity, IConcurrencyEntity
     {
@@ -10,6 +11,8 @@ namespace SCH.Models.Teachers.Entities
         public required string Name { get; set; }
 
         public int? UserId { get; set; }
+
+        public User? User { get; set; }
 
         // Audit properties
         public int CreatedBy { get; set; }

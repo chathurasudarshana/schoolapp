@@ -19,6 +19,8 @@ import { HasUnsavedChanges } from '../../../../../interfaces/has-unsaved-changes
 import { Auth } from '../../../../../services/auth';
 import { IdentityUserApi } from '../../../../../sch/services/identity-user-api';
 import { UserLookup } from '../../../../../sch/interfaces/user-lookup';
+import { Observable, forkJoin, of } from 'rxjs';
+import { catchError, finalize, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'sch-student-detail-page',
@@ -72,16 +74,7 @@ export class StudentDetailPage implements OnInit, HasUnsavedChanges {
   ngOnInit(): void {
     this._avRoute.params.subscribe((params) => {
       this.studentId.set(+params['id'] || 0);
-      this.setStudent();
-
-      // Load available users for UserId dropdown (admin only)
-      if (this.auth.isAdmin()) {
-        this.isUsersLoading.set(true);
-        this.identityUserApi.getBasicOnlyUsers().subscribe({
-          next: (users) => this.availableUsers.set(users),
-          error: () => this.availableUsers.set([]),
-        }).add(() => this.isUsersLoading.set(false));
-      }
+      this.loadData();
     });
   }
 
@@ -102,37 +95,61 @@ export class StudentDetailPage implements OnInit, HasUnsavedChanges {
     });
   }
 
-  private setStudent(): void {
+  private setStudent(): Observable<Student | null> {
     this.reset();
-    if (this.studentId()) {
-      this.isStudentLoading.set(true);
-      this.studentApi
-        .getStudent(this.studentId())
-        .subscribe({
-          next: (student) => {
-            if (student) {
-              if (student.startDate) {
-                student.startDate = new Date(student.startDate);
-              }
-              this.student.set(student);
-
-              this.setFormData();
-            } else {
-              this.router.navigate(['../', 0], { relativeTo: this._avRoute });
-            }
-          },
-          error: (error) => {
-            if (error.status === 404) {
-              this.router.navigate(['../', 0], { relativeTo: this._avRoute });
-            }
-          },
-        })
-        .add(() => {
-          this.isStudentLoading.set(false);
-        });
-    } else {
+    if (!this.studentId()) {
       this.setFormData();
+      return of(null);
     }
+    this.isStudentLoading.set(true);
+    return this.studentApi.getStudent(this.studentId()).pipe(
+      tap((student) => {
+        if (student) {
+          if (student.startDate) {
+            student.startDate = new Date(student.startDate);
+          }
+          this.student.set(student);
+          this.setFormData();
+        } else {
+          this.router.navigate(['../', 0], { relativeTo: this._avRoute });
+        }
+      }),
+      catchError((error) => {
+        if (error.status === 404) {
+          this.router.navigate(['../', 0], { relativeTo: this._avRoute });
+        }
+        return of(null);
+      }),
+      finalize(() => this.isStudentLoading.set(false))
+    );
+  }
+
+  private getBasicUsers(): Observable<UserLookup[]> {
+    if (!this.auth.isAdmin()) {
+      return of([]);
+    }
+    this.isUsersLoading.set(true);
+    return this.identityUserApi.getBasicOnlyUsers().pipe(
+      catchError(() => of([])),
+      finalize(() => this.isUsersLoading.set(false))
+    );
+  }
+
+  private loadData(): void {
+    forkJoin({
+      student: this.setStudent(),
+      users: this.getBasicUsers(),
+    }).subscribe({
+      next: ({ student, users }) => {
+        const currentUser: UserLookup[] = student?.user ? [student.user] : [];
+        const merged = [
+          ...currentUser,
+          ...users.filter((u) => !currentUser.some((c) => c.id === u.id)),
+        ];
+        this.availableUsers.set(merged);
+      },
+      error: () => this.availableUsers.set([]),
+    });
   }
 
   private setFormData(): void {
@@ -223,7 +240,7 @@ export class StudentDetailPage implements OnInit, HasUnsavedChanges {
             if (this.isImageChanged() && currentStudent?.image) {
               this.deleteImage(currentStudent.image);
             }
-            this.setStudent();
+            this.loadData();
             this.notification.success('Student updated successfully');
           },
           error: (error) => {

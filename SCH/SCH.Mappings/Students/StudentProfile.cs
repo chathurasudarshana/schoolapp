@@ -6,6 +6,8 @@ namespace SCH.Mappings.Students
     using SCH.Models.Students.ClientDtos;
     using SCH.Models.Students.DbDtos;
     using SCH.Models.Students.Entities;
+    using SCH.Models.Users.ClientDtos;
+    using SCH.Models.Users.Entities;
 
     public class StudentProfile : Profile, IProfile
     {
@@ -15,6 +17,8 @@ namespace SCH.Mappings.Students
                 .ForMember(
                     dest => dest.Courses, 
                     opt => opt.MapFrom(src => src.StudentCourseMaps));
+
+            CreateMap<User, UserDomainDto>();
 
             CreateMap<StudentGridResult, Student>()
                 .ForMember(

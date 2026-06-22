@@ -1,3 +1,5 @@
+import { UserLookup } from './user-lookup';
+
 export interface Student {
     id: number;
     firstName: string;
@@ -9,7 +11,8 @@ export interface Student {
     startDate: Date | null;
     isActive: boolean;
     userId?: number | null;
-    
+    user?: UserLookup | null;
+
     /**
      * Row version for optimistic concurrency control
      * Base64-encoded byte array from backend

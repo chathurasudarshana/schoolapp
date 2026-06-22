@@ -38,6 +38,7 @@ namespace SCH.Repositories.Students
                 .AsNoTracking()
                 .Include(s => s.StudentCourseMaps)
                 .ThenInclude(sc => sc.Course)
+                .Include(s => s.User)
                 .SingleOrDefaultAsync(s => s.Id == id);
 
             return student;

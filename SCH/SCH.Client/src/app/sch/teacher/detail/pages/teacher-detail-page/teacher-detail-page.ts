@@ -15,6 +15,8 @@ import { HasUnsavedChanges } from '../../../../../interfaces/has-unsaved-changes
 import { Auth } from '../../../../../services/auth';
 import { IdentityUserApi } from '../../../../../sch/services/identity-user-api';
 import { UserLookup } from '../../../../../sch/interfaces/user-lookup';
+import { Observable, forkJoin, of } from 'rxjs';
+import { catchError, finalize, tap } from 'rxjs/operators';
 
 
 @Component({
@@ -56,15 +58,7 @@ export class TeacherDetailPage implements OnInit, HasUnsavedChanges {
   ngOnInit(): void {
     this._avRoute.params.subscribe((params) => {
       this.teacherId.set(+params['id'] || 0);
-      this.setTeacher();
-
-      if (this.auth.isAdmin()) {
-        this.isUsersLoading.set(true);
-        this.identityUserApi.getBasicOnlyUsers().subscribe({
-          next: (users) => this.availableUsers.set(users),
-          error: () => this.availableUsers.set([]),
-        }).add(() => this.isUsersLoading.set(false));
-      }
+      this.loadData();
     });
   }
 
@@ -77,34 +71,58 @@ export class TeacherDetailPage implements OnInit, HasUnsavedChanges {
     });
   }
 
-  private setTeacher(): void {
+  private setTeacher(): Observable<Teacher | null> {
     this.reset();
-    if (this.teacherId()) {
-      this.isTeacherLoading.set(true);
-      this.teacherApi
-        .getTeacher(this.teacherId())
-        .subscribe({
-          next: (teacher) => {
-            if (teacher) {
-              this.teacher.set(teacher);
-
-              this.setFormData();
-            } else {
-              this.router.navigate(['../', 0], { relativeTo: this._avRoute });
-            }
-          },
-          error: (error) => {
-            if (error.status === 404) {
-              this.router.navigate(['../', 0], { relativeTo: this._avRoute });
-            }
-          },
-        })
-        .add(() => {
-          this.isTeacherLoading.set(false);
-        });
-    } else {
+    if (!this.teacherId()) {
       this.setFormData();
+      return of(null);
     }
+    this.isTeacherLoading.set(true);
+    return this.teacherApi.getTeacher(this.teacherId()).pipe(
+      tap((teacher) => {
+        if (teacher) {
+          this.teacher.set(teacher);
+          this.setFormData();
+        } else {
+          this.router.navigate(['../', 0], { relativeTo: this._avRoute });
+        }
+      }),
+      catchError((error) => {
+        if (error.status === 404) {
+          this.router.navigate(['../', 0], { relativeTo: this._avRoute });
+        }
+        return of(null);
+      }),
+      finalize(() => this.isTeacherLoading.set(false))
+    );
+  }
+
+  private getBasicUsers(): Observable<UserLookup[]> {
+    if (!this.auth.isAdmin()) {
+      return of([]);
+    }
+    this.isUsersLoading.set(true);
+    return this.identityUserApi.getBasicOnlyUsers().pipe(
+      catchError(() => of([])),
+      finalize(() => this.isUsersLoading.set(false))
+    );
+  }
+
+  private loadData(): void {
+    forkJoin({
+      teacher: this.setTeacher(),
+      users: this.getBasicUsers(),
+    }).subscribe({
+      next: ({ teacher, users }) => {
+        const currentUser: UserLookup[] = teacher?.user ? [teacher.user] : [];
+        const merged = [
+          ...currentUser,
+          ...users.filter((u) => !currentUser.some((c) => c.id === u.id)),
+        ];
+        this.availableUsers.set(merged);
+      },
+      error: () => this.availableUsers.set([]),
+    });
   }
 
   private setFormData(): void {
@@ -144,7 +162,7 @@ export class TeacherDetailPage implements OnInit, HasUnsavedChanges {
         .updateTeacher(teacher)
         .subscribe({
           next: () => {
-            this.setTeacher();
+            this.loadData();
             this.notification.success('Teacher updated successfully');
           },
           error: (error) => {
