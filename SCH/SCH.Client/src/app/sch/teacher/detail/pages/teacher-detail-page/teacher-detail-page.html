@@ -43,7 +43,7 @@
             >
                 <option [value]="null">-- None --</option>
                 @for (u of availableUsers(); track u.id) {
-                <option [value]="u.id">{{ u.fullName }} ({{ u.id }})</option>
+                <option [ngValue]="u.id">{{ u.fullName }} ({{ u.id }})</option>
                 }
             </select>
             }

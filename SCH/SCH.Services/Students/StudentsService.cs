@@ -127,6 +127,7 @@ namespace SCH.Services.Students
             studentEntity.SSN = student.SSN;
             studentEntity.StartDate = student.StartDate;
             studentEntity.UserId = newUserId;
+            studentEntity.User = null;
 
             // Include RowVersion from frontend for concurrency check
             studentEntity.RowVersion = student.RowVersion ?? studentEntity.RowVersion;

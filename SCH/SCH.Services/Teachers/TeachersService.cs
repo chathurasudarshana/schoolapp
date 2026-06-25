@@ -82,6 +82,7 @@ namespace SCH.Services.Teachers
             // Map DTO to entity
             teacherEntity.Name = teacher.Name;
             teacherEntity.UserId = newUserId;
+            teacherEntity.User = null;
 
             // Include RowVersion from frontend for concurrency check
             teacherEntity.RowVersion = teacher.RowVersion ?? teacherEntity.RowVersion;
