@@ -41,7 +41,7 @@
                 formControlName="userId"
                 class="form-control"
             >
-                <option [value]="null">-- None --</option>
+                <option [ngValue]="null">-- None --</option>
                 @for (u of availableUsers(); track u.id) {
                 <option [ngValue]="u.id">{{ u.fullName }} ({{ u.id }})</option>
                 }
