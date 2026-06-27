@@ -10,6 +10,7 @@ import { APP_CONFIG } from '../injection-tokens/app-config.token';
 import { LogoutScope } from '../enums/logout-scope';
 import { Policy } from '../enums/policy';
 import { Permission, Role } from '../enums';
+import { HasPolicyData } from '../interfaces/has-policy-data';
 
 /**
  * Authentication service that manages user state, tokens, and auth logic
@@ -435,7 +436,10 @@ export class Auth {
    * Evaluate a named policy against the current userS roles and permissions.
    * Mirrors the backend policy definitions in AuthorizationExtensions.cs.
    */
-  public hasPolicy(policy: Policy): boolean {
+  public hasPolicy(
+    policy: Policy,
+    policyData?: HasPolicyData
+  ): boolean {
     let hasPolicy = false;
     const isAdmin = this.isAdmin();
     if (isAdmin) {
@@ -451,12 +455,12 @@ export class Auth {
           hasPolicy = perms.includes(Permission.StudentAdd);
           break;
         case Policy.EditStudents:
-          hasPolicy = perms.includes(Permission.StudentWrite) 
-            || perms.includes(Permission.StudentWriteOwn);
-          break;
-        case Policy.EditOwnStudent:
-          hasPolicy = perms.includes(Permission.StudentWrite) 
-            || perms.includes(Permission.StudentWriteOwn);
+          hasPolicy = !!(perms.includes(Permission.StudentWrite) 
+            || (perms.includes(Permission.StudentWriteOwn) 
+              && policyData?.studentId
+              && this.ownStudentId()
+              && policyData.studentId === this.ownStudentId()));
+
           break;
         case Policy.DeleteStudents:
           hasPolicy = perms.includes(Permission.StudentWrite);
@@ -465,12 +469,11 @@ export class Auth {
           hasPolicy = perms.includes(Permission.TeacherRead);
           break;
         case Policy.EditTeachers:
-          hasPolicy = perms.includes(Permission.TeacherWrite) 
-            || perms.includes(Permission.TeacherWriteOwn);
-          break;
-        case Policy.EditOwnTeacher:
-          hasPolicy = perms.includes(Permission.TeacherWrite) 
-            || perms.includes(Permission.TeacherWriteOwn);
+          hasPolicy = !!(perms.includes(Permission.TeacherWrite) 
+            || (perms.includes(Permission.TeacherWriteOwn) 
+              && policyData?.teacherId
+              && this.ownTeacherId()
+              && policyData.teacherId === this.ownTeacherId()));
           break;
         case Policy.DeleteTeachers:
           hasPolicy = perms.includes(Permission.TeacherWrite);

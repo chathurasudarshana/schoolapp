@@ -1,26 +1,31 @@
 namespace SCH.API.Authorization
 {
     using Microsoft.AspNetCore.Authorization;
+    using SCH.Models.Auth.Constants;
 
-    /// <summary>
-    /// Requirement: the editing user must be the owner of the teacher record.
-    /// Checked by OwnTeacherRecordHandler using the JWT own_teacher_id claim vs the route {id}.
-    /// </summary>
-    public class OwnTeacherRecordRequirement : IAuthorizationRequirement { }
-
-    public class OwnTeacherRecordHandler : AuthorizationHandler<OwnTeacherRecordRequirement>
+    public class TeacherRecordEditAuthorizationHandler : AuthorizationHandler<TeacherRecordEditAuthorizationRequirement>
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public OwnTeacherRecordHandler(IHttpContextAccessor httpContextAccessor)
+        public TeacherRecordEditAuthorizationHandler(IHttpContextAccessor httpContextAccessor)
         {
             _httpContextAccessor = httpContextAccessor;
         }
 
         protected override Task HandleRequirementAsync(
             AuthorizationHandlerContext context,
-            OwnTeacherRecordRequirement requirement)
+            TeacherRecordEditAuthorizationRequirement requirement)
         {
+
+            // Admin or users with full teachers:write permission can edit any record
+            if (context.User.IsInRole(Role.Admin) ||
+                context.User.HasClaim(Permission.ClaimType, Permission.Teacher.Write))
+            {
+                context.Succeed(requirement);
+                return Task.CompletedTask;
+            }
+
+            // Users with teachers:write-own can only edit their own record
             string? ownTeacherIdClaim = context.User.FindFirst("own_teacher_id")?.Value;
             if (!string.IsNullOrEmpty(ownTeacherIdClaim)) {
                 RouteData? routeData = _httpContextAccessor.HttpContext?.GetRouteData();

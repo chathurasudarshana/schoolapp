@@ -33,6 +33,7 @@ import { StudentGridRequest } from '../../../interfaces/student-grid-request';
 import { Auth } from '../../../../../services/auth';
 import { Policy } from '../../../../../enums/policy';
 import { HasPolicy } from '../../../../../directives/has-policy.directive';
+import { HasPolicyData } from '../../../../../interfaces/has-policy-data';
 
 ModuleRegistry.registerModules([AllCommunityModule, ServerSideRowModelModule, ServerSideRowModelApiModule, SetFilterModule]);
 
@@ -113,10 +114,10 @@ export class StudentListPage {
     {
       headerName: 'Actions',
       cellRenderer: (params: any) => {
+
         const student: Student = params.data;
-        const canEdit = this.auth.hasPolicy(Policy.EditStudents) ||
-          (this.auth.hasPolicy(Policy.EditOwnStudent) &&
-            student?.id === this.auth.ownStudentId());
+        const editPolicyData: HasPolicyData = { studentId: student?.id };
+        const canEdit = this.auth.hasPolicy(Policy.EditStudents, editPolicyData);
         const canDelete = this.auth.hasPolicy(Policy.DeleteStudents);
 
         const editBtn = canEdit

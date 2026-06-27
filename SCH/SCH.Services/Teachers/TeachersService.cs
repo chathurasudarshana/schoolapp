@@ -1,6 +1,7 @@
 namespace SCH.Services.Teachers
 {
     using AutoMapper;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
     using SCH.Models.Auth.Constants;
     using SCH.Models.Auth.Entities;
@@ -18,19 +19,22 @@ namespace SCH.Services.Teachers
         private readonly UserManager<ApplicationUser> userManager;
         private readonly IAuthService authService;
         private readonly IMapper mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public TeachersService(
             ISCHUnitOfWork unitOfWork,
             ITeachersRepository teachersRepository,
             UserManager<ApplicationUser> userManager,
             IAuthService authService,
-            IMapper mapper)
+            IMapper mapper,
+            IHttpContextAccessor httpContextAccessor)
         {
             this.unitOfWork = unitOfWork;
             this.teachersRepository = teachersRepository;
             this.userManager = userManager;
             this.authService = authService;
             this.mapper = mapper;
+            this._httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<List<TeacherDto>> GetTeachersAsync()
@@ -76,13 +80,18 @@ namespace SCH.Services.Teachers
                 throw SCHDomainException.NotFound();
             }
 
+            bool isAdmin = _httpContextAccessor.HttpContext?.User.IsInRole(Role.Admin) == true;
             int? oldUserId = teacherEntity.UserId;
             int? newUserId = teacher.UserId;
 
             // Map DTO to entity
             teacherEntity.Name = teacher.Name;
-            teacherEntity.UserId = newUserId;
-            teacherEntity.User = null;
+
+            if (isAdmin) 
+            {
+                teacherEntity.UserId = newUserId;
+                teacherEntity.User = null;
+            }
 
             // Include RowVersion from frontend for concurrency check
             teacherEntity.RowVersion = teacher.RowVersion ?? teacherEntity.RowVersion;
@@ -92,7 +101,7 @@ namespace SCH.Services.Teachers
             await unitOfWork.SaveChangesAsync();
 
             // Handle UserId change: manage roles and revoke stale sessions
-            if (oldUserId != newUserId)
+            if (isAdmin && oldUserId != newUserId)
             {
                 if (oldUserId.HasValue)
                 {

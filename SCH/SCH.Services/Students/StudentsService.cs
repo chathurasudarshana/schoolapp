@@ -1,6 +1,7 @@
 namespace SCH.Services.Students
 {
     using AutoMapper;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
     using SCH.Models.Auth.Constants;
     using SCH.Models.Auth.Entities;
@@ -16,7 +17,6 @@ namespace SCH.Services.Students
     using SCH.Repositories.UnitOfWork;
     using SCH.Services.Auth;
     using SCH.Shared.Exceptions;
-    using System;
 
     internal class StudentsService: IStudentsService
     {
@@ -27,6 +27,7 @@ namespace SCH.Services.Students
         private readonly UserManager<ApplicationUser> userManager;
         private readonly IAuthService authService;
         private readonly IMapper mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
 
         public StudentsService(
@@ -36,7 +37,8 @@ namespace SCH.Services.Students
             IStudentCourseMapRepository studentCourseMapRepository,
             UserManager<ApplicationUser> userManager,
             IAuthService authService,
-            IMapper mapper) 
+            IMapper mapper,
+            IHttpContextAccessor httpContextAccessor) 
         { 
             this.unitOfWork = unitOfWork;
             this.studentsRepository = studentsRepository;
@@ -45,6 +47,7 @@ namespace SCH.Services.Students
             this.userManager = userManager;
             this.authService = authService;
             this.mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<List<StudentDto>> GetStudentsAsync(bool? isActive)
@@ -115,6 +118,8 @@ namespace SCH.Services.Students
 
             await ValidateCourses(student);
 
+            bool isAdmin = _httpContextAccessor.HttpContext?.User.IsInRole(Role.Admin) == true;
+
             int? oldUserId = studentEntity.UserId;
             int? newUserId = student.UserId;
 
@@ -126,8 +131,12 @@ namespace SCH.Services.Students
             studentEntity.PhoneNumber = student.PhoneNumber;
             studentEntity.SSN = student.SSN;
             studentEntity.StartDate = student.StartDate;
-            studentEntity.UserId = newUserId;
-            studentEntity.User = null;
+
+            if (isAdmin)
+            {
+                studentEntity.UserId = newUserId;
+                studentEntity.User = null;
+            }
 
             // Include RowVersion from frontend for concurrency check
             studentEntity.RowVersion = student.RowVersion ?? studentEntity.RowVersion;
@@ -164,7 +173,7 @@ namespace SCH.Services.Students
             await unitOfWork.SaveChangesAsync();
 
             // Handle UserId change: manage roles and revoke stale sessions
-            if (oldUserId != newUserId)
+            if (isAdmin && oldUserId != newUserId)
             {
                 if (oldUserId.HasValue)
                 {

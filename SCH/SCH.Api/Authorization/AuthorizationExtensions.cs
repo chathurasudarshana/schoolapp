@@ -8,8 +8,8 @@ namespace SCH.API.Authorization
         public static IServiceCollection AddSchoolAppPolicies(this IServiceCollection services)
         {
             // Register own-record handlers
-            services.AddSingleton<IAuthorizationHandler, OwnStudentRecordHandler>();
-            services.AddSingleton<IAuthorizationHandler, OwnTeacherRecordHandler>();
+            services.AddSingleton<IAuthorizationHandler, StudentRecordEditAuthorizationHandler>();
+            services.AddSingleton<IAuthorizationHandler, TeacherRecordEditAuthorizationHandler>();
 
             services.AddAuthorization(options =>
             {
@@ -29,19 +29,9 @@ namespace SCH.API.Authorization
                         ctx.User.IsInRole(Role.Admin) ||
                         ctx.User.HasClaim(Permission.ClaimType, Permission.Student.Add)));
 
-                // Admin, Teacher (students:write), or any user editing their own record (students:write-own)
+                // Admin, Teacher (students:write) can edit any record; students with write-own can edit their own
                 options.AddPolicy(Policy.EditStudents, policy =>
-                    policy.RequireAssertion(ctx =>
-                        ctx.User.IsInRole(Role.Admin) ||
-                        ctx.User.HasClaim(Permission.ClaimType, Permission.Student.Write) ||
-                        ctx.User.HasClaim(Permission.ClaimType, Permission.Student.WriteOwn)));
-
-                // Edit own student record only (Student role)
-                options.AddPolicy(Policy.EditOwnStudent, policy =>
-                    policy.RequireAssertion(ctx =>
-                        ctx.User.IsInRole(Role.Admin) ||
-                        ctx.User.HasClaim(Permission.ClaimType, Permission.Student.Write))
-                    .AddRequirements(new OwnStudentRecordRequirement()));
+                    policy.AddRequirements(new StudentRecordEditAuthorizationRequirement()));
 
                 // Admin only
                 options.AddPolicy(Policy.DeleteStudents, policy =>
@@ -57,16 +47,7 @@ namespace SCH.API.Authorization
 
                 // Admin, or Teacher editing their own record (teachers:write-own)
                 options.AddPolicy(Policy.EditTeachers, policy =>
-                    policy.RequireAssertion(ctx =>
-                        ctx.User.IsInRole(Role.Admin) ||
-                        ctx.User.HasClaim(Permission.ClaimType, Permission.Teacher.Write) ||
-                        ctx.User.HasClaim(Permission.ClaimType, Permission.Teacher.WriteOwn)));
-
-                options.AddPolicy(Policy.EditOwnTeacher, policy =>
-                    policy.RequireAssertion(ctx =>
-                        ctx.User.IsInRole(Role.Admin) ||
-                        ctx.User.HasClaim(Permission.ClaimType, Permission.Teacher.Write))
-                    .AddRequirements(new OwnTeacherRecordRequirement()));
+                    policy.AddRequirements(new TeacherRecordEditAuthorizationRequirement()));
 
                 options.AddPolicy(Policy.DeleteTeachers, policy =>
                     policy.RequireRole(Role.Admin));

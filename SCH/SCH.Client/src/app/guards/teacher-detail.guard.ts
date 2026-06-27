@@ -10,7 +10,8 @@ import { Auth } from '../services/auth';
 import { Observable, of } from 'rxjs';
 import { filter, take, switchMap } from 'rxjs/operators';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { Role } from '../enums';
+import { Policy, Role } from '../enums';
+import { HasPolicyData } from '../interfaces/has-policy-data';
 
 /**
  * Teacher detail guard.
@@ -36,15 +37,11 @@ export const teacherDetailGuard: CanActivateFn = (
         return of(router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } }));
       }
 
-      if (authService.isAdmin()) {
-        return of(true);
-      }
+      const routeId = Number(route.paramMap.get('id'));
+      const policyData: HasPolicyData = { teacherId: routeId };
 
-      if (authService.hasRole(Role.Teacher)) {
-        const routeId = Number(route.paramMap.get('id'));
-        if (routeId && routeId === authService.ownTeacherId()) {
-          return of(true);
-        }
+      if (authService.hasPolicy(Policy.EditTeachers, policyData)) {
+        return of(true);
       }
 
       // Student role and all others: block

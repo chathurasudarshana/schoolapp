@@ -17,7 +17,7 @@ import { TeacherApi } from '../../../../../sch/services/teacher-api';
 import { Auth } from '../../../../../services/auth';
 import { Policy } from '../../../../../enums/policy';
 import { HasPolicy } from '../../../../../directives/has-policy.directive';
-
+import { HasPolicyData } from '../../../../../interfaces/has-policy-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -51,9 +51,8 @@ export class TeacherListPage {
         headerName: 'Actions',
         cellRenderer: (params: any) => {
           const teacher: Teacher = params.data;
-          const canEdit = this.auth.hasPolicy(Policy.EditTeachers) ||
-            (this.auth.hasPolicy(Policy.EditOwnTeacher) &&
-              teacher?.id === this.auth.ownTeacherId());
+          const editPolicyData: HasPolicyData = { teacherId: teacher?.id };
+          const canEdit = this.auth.hasPolicy(Policy.EditTeachers, editPolicyData);
           const canDelete = this.auth.hasPolicy(Policy.DeleteTeachers);
 
           const editBtn = canEdit
