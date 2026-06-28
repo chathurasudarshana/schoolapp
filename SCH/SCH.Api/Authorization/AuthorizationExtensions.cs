@@ -35,7 +35,9 @@ namespace SCH.API.Authorization
 
                 // Admin only
                 options.AddPolicy(Policy.DeleteStudents, policy =>
-                    policy.RequireRole(Role.Admin));
+                    policy.RequireAssertion(ctx =>
+                        ctx.User.IsInRole(Role.Admin) ||
+                        ctx.User.HasClaim(Permission.ClaimType, Permission.Student.Remove)));
 
                 // ---- Teacher policies ----
 
@@ -50,7 +52,9 @@ namespace SCH.API.Authorization
                     policy.AddRequirements(new TeacherRecordEditAuthorizationRequirement()));
 
                 options.AddPolicy(Policy.DeleteTeachers, policy =>
-                    policy.RequireRole(Role.Admin));
+                    policy.RequireAssertion(ctx =>
+                        ctx.User.IsInRole(Role.Admin) ||
+                        ctx.User.HasClaim(Permission.ClaimType, Permission.Teacher.Remove)));
 
                 // ---- Course policies ----
 
@@ -72,7 +76,10 @@ namespace SCH.API.Authorization
                         ctx.User.HasClaim(Permission.ClaimType, Permission.Course.Write)));
 
                 options.AddPolicy(Policy.DeleteCourses, policy =>
-                    policy.RequireRole(Role.Admin));
+                    policy.RequireAssertion(ctx =>
+                        ctx.User.IsInRole(Role.Admin) ||
+                        ctx.User.HasClaim(Permission.ClaimType, Permission.Course.Remove)));
+
             });
 
             return services;

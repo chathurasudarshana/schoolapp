@@ -463,7 +463,7 @@ export class Auth {
 
           break;
         case Policy.DeleteStudents:
-          hasPolicy = perms.includes(Permission.StudentWrite);
+          hasPolicy = perms.includes(Permission.StudentRemove);
           break;
         case Policy.ViewTeachers:
           hasPolicy = perms.includes(Permission.TeacherRead);
@@ -476,7 +476,7 @@ export class Auth {
               && policyData.teacherId === this.ownTeacherId()));
           break;
         case Policy.DeleteTeachers:
-          hasPolicy = perms.includes(Permission.TeacherWrite);
+          hasPolicy = perms.includes(Permission.TeacherRemove);
           break;
         case Policy.ViewCourses:
           hasPolicy = perms.includes(Permission.CourseRead);
@@ -488,7 +488,7 @@ export class Auth {
           hasPolicy = perms.includes(Permission.CourseWrite);
           break;
         case Policy.DeleteCourses:
-          hasPolicy = perms.includes(Permission.CourseWrite);
+          hasPolicy = perms.includes(Permission.CourseRemove);
           break;
       }
     }
