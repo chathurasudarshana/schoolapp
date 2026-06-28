@@ -19,7 +19,10 @@ namespace SCH.Services.Auth
             int userId, 
             string username, 
             string email, 
-            IList<string> roles);
+            IList<string> roles,
+            IList<string>? permissions = null,
+            int? ownStudentId = null,
+            int? ownTeacherId = null);
 
         /// <summary>
         /// Generates a random refresh token

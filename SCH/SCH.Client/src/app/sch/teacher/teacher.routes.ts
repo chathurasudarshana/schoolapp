@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
-import { unsavedChangesGuard } from '../../guards';
+import { unsavedChangesGuard, policyGuard, teacherDetailGuard } from '../../guards';
+import { Policy } from '../../enums/policy';
 
 export const teacherRoutes: Routes = [
   {
@@ -13,6 +14,8 @@ export const teacherRoutes: Routes = [
       import('./list/pages/teacher-list-page/teacher-list-page').then(
         (m) => m.TeacherListPage
       ),
+    canActivate: [policyGuard],
+    data: { policy: Policy.ViewTeachers },
   },
   {
     path: 'detail/:id',
@@ -20,6 +23,7 @@ export const teacherRoutes: Routes = [
       import('./detail/pages/teacher-detail-page/teacher-detail-page').then(
         (m) => m.TeacherDetailPage
       ),
+    canActivate: [teacherDetailGuard],
     canDeactivate: [unsavedChangesGuard],
   },
 ];

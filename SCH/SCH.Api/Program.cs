@@ -1,10 +1,11 @@
 using Microsoft.OpenApi.Models;
 using NLog.Extensions.Logging;
+using SCH.API.Authorization;
 using SCH.Core.Cors;
 using SCH.Core.Extensions;
 using SCH.Core.ErrorHandling;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 const string allowOriginsPolicy = "AllowOrigins";
 
@@ -21,12 +22,13 @@ builder.Services.AddServices();
 builder.Services.AddRepositories();
 builder.Services.AddMappings();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 // Register both contexts (same database, different schemas)
 builder.Services.AddDbContexts(connectionString, connectionString);
 
 builder.Services.AddUnitOfWorks();
 builder.Services.AddAuthenticationWithJwt(builder.Configuration);
+builder.Services.AddSchoolAppPolicies();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddNLog("nlog.config");
@@ -76,7 +78,7 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddExceptionHandler<AppExceptionHandler>();
 builder.Services.AddProblemDetails();
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

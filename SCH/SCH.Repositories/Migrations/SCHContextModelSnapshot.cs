@@ -153,11 +153,18 @@ namespace SCH.Repositories.Migrations
                     b.Property<DateTime?>("StartDate")
                         .HasColumnType("date");
 
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedBy");
 
                     b.HasIndex("ModifiedBy");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL");
 
                     b.ToTable("Student", "dbo");
                 });
@@ -192,11 +199,18 @@ namespace SCH.Repositories.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedBy");
 
                     b.HasIndex("ModifiedBy");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL");
 
                     b.ToTable("Teacher", "dbo");
                 });
@@ -299,6 +313,11 @@ namespace SCH.Repositories.Migrations
                         .WithMany()
                         .HasForeignKey("ModifiedBy")
                         .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("SCH.Models.Users.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("SCH.Models.Teachers.Entities.Teacher", b =>
@@ -313,6 +332,11 @@ namespace SCH.Repositories.Migrations
                         .WithMany()
                         .HasForeignKey("ModifiedBy")
                         .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("SCH.Models.Users.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("SCH.Models.Users.Entities.User", b =>

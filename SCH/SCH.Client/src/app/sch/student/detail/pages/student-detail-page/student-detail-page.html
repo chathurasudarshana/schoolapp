@@ -108,6 +108,36 @@
             />
         </div>
 
+        @if (auth.isAdmin()) {
+        <div class="form-group">
+            <label for="userId">Linked User</label>
+            @if (isUsersLoading()) {
+            <p class="form-control-plaintext">Loading users...</p>
+            } @else {
+            <select
+                id="userId"
+                formControlName="userId"
+                class="form-control"
+            >
+                <option [ngValue]="null">-- None --</option>
+                @for (u of availableUsers(); track u.id) {
+                <option [ngValue]="u.id">{{ u.fullName }} ({{ u.id }})</option>
+                }
+            </select>
+            }
+        </div>
+        } @else {
+        <div class="form-group">
+            <label for="userIdReadonly">Linked User</label>
+            <input
+                id="userIdReadonly"
+                class="form-control"
+                [value]="student()?.user?.fullName ?? 'Not linked'"
+                disabled
+            />
+        </div>
+        }
+
         <div class="form-group row">
             <label
                 class=" control-label col-md-3"

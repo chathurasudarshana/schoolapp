@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Teacher } from '../../../../../sch/interfaces/teacher';
 import {
@@ -12,6 +12,11 @@ import { TeacherApi } from '../../../../../sch/services/teacher-api';
 import { CommonModule } from '@angular/common';
 import { Notification } from '../../../../../services/notification';
 import { HasUnsavedChanges } from '../../../../../interfaces/has-unsaved-changes';
+import { Auth } from '../../../../../services/auth';
+import { IdentityUserApi } from '../../../../../sch/services/identity-user-api';
+import { UserLookup } from '../../../../../sch/interfaces/user-lookup';
+import { Observable, forkJoin, of } from 'rxjs';
+import { catchError, finalize, tap } from 'rxjs/operators';
 
 
 @Component({
@@ -21,12 +26,13 @@ import { HasUnsavedChanges } from '../../../../../interfaces/has-unsaved-changes
   styleUrl: './teacher-detail-page.scss'
 })
 export class TeacherDetailPage implements OnInit, HasUnsavedChanges {
+  protected readonly auth = inject(Auth);
   protected readonly teacherId = signal(0);
-
   protected readonly teacher = signal<Teacher | null>(null);
-
   protected readonly isTeacherLoading = signal(false);
   protected readonly isTeacherSaving = signal(false);
+  protected readonly availableUsers = signal<UserLookup[]>([]);
+  protected readonly isUsersLoading = signal(false);
 
   protected teacherForm: FormGroup;
 
@@ -35,19 +41,24 @@ export class TeacherDetailPage implements OnInit, HasUnsavedChanges {
     private readonly router: Router,
     private readonly fb: FormBuilder,
     private readonly teacherApi: TeacherApi,
+    private readonly identityUserApi: IdentityUserApi,
     private readonly notification: Notification
   ) {
     this.teacherForm = this.fb.group({
       id: [0],
       name: ['', [Validators.required, Validators.minLength(2)]],
+      userId: [null],
     });
+
+    if (!this.auth.isAdmin()) {
+      this.teacherForm.get('userId')!.disable();
+    }
   }
 
   ngOnInit(): void {
     this._avRoute.params.subscribe((params) => {
       this.teacherId.set(+params['id'] || 0);
-
-      this.setTeacher();
+      this.loadData();
     });
   }
 
@@ -56,37 +67,62 @@ export class TeacherDetailPage implements OnInit, HasUnsavedChanges {
     this.teacherForm.reset({
       id: 0,
       name: '',
+      userId: null,
     });
   }
 
-  private setTeacher(): void {
+  private setTeacher(): Observable<Teacher | null> {
     this.reset();
-    if (this.teacherId()) {
-      this.isTeacherLoading.set(true);
-      this.teacherApi
-        .getTeacher(this.teacherId())
-        .subscribe({
-          next: (teacher) => {
-            if (teacher) {
-              this.teacher.set(teacher);
-
-              this.setFormData();
-            } else {
-              this.router.navigate(['../', 0], { relativeTo: this._avRoute });
-            }
-          },
-          error: (error) => {
-            if (error.status === 404) {
-              this.router.navigate(['../', 0], { relativeTo: this._avRoute });
-            }
-          },
-        })
-        .add(() => {
-          this.isTeacherLoading.set(false);
-        });
-    } else {
+    if (!this.teacherId()) {
       this.setFormData();
+      return of(null);
     }
+    this.isTeacherLoading.set(true);
+    return this.teacherApi.getTeacher(this.teacherId()).pipe(
+      tap((teacher) => {
+        if (teacher) {
+          this.teacher.set(teacher);
+          this.setFormData();
+        } else {
+          this.router.navigate(['../', 0], { relativeTo: this._avRoute });
+        }
+      }),
+      catchError((error) => {
+        if (error.status === 404) {
+          this.router.navigate(['../', 0], { relativeTo: this._avRoute });
+        }
+        return of(null);
+      }),
+      finalize(() => this.isTeacherLoading.set(false))
+    );
+  }
+
+  private getBasicUsers(): Observable<UserLookup[]> {
+    if (!this.auth.isAdmin()) {
+      return of([]);
+    }
+    this.isUsersLoading.set(true);
+    return this.identityUserApi.getBasicOnlyUsers().pipe(
+      catchError(() => of([])),
+      finalize(() => this.isUsersLoading.set(false))
+    );
+  }
+
+  private loadData(): void {
+    forkJoin({
+      teacher: this.setTeacher(),
+      users: this.getBasicUsers(),
+    }).subscribe({
+      next: ({ teacher, users }) => {
+        const currentUser: UserLookup[] = teacher?.user ? [teacher.user] : [];
+        const merged = [
+          ...currentUser,
+          ...users.filter((u) => !currentUser.some((c) => c.id === u.id)),
+        ];
+        this.availableUsers.set(merged);
+      },
+      error: () => this.availableUsers.set([]),
+    });
   }
 
   private setFormData(): void {
@@ -95,6 +131,7 @@ export class TeacherDetailPage implements OnInit, HasUnsavedChanges {
       this.teacherForm.setValue({
         id: teacher.id,
         name: teacher.name,
+        userId: teacher.userId ?? null,
       });
     }
   }
@@ -115,6 +152,7 @@ export class TeacherDetailPage implements OnInit, HasUnsavedChanges {
     const teacher: Teacher = {
       id: this.teacherForm.value.id,
       name: this.teacherForm.value.name,
+      userId: this.auth.isAdmin() ? (this.teacherForm.value.userId ?? null) : undefined,
       rowVersion: this.teacher()?.rowVersion, // Include rowVersion for concurrency check
     };
 
@@ -124,7 +162,7 @@ export class TeacherDetailPage implements OnInit, HasUnsavedChanges {
         .updateTeacher(teacher)
         .subscribe({
           next: () => {
-            this.setTeacher();
+            this.loadData();
             this.notification.success('Teacher updated successfully');
           },
           error: (error) => {

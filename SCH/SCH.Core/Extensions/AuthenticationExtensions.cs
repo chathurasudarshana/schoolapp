@@ -51,10 +51,10 @@ namespace SCH.Core.Extensions
             .AddDefaultTokenProviders();
 
             // Configure JWT Authentication
-            var jwtSettings = configuration.GetSection("JwtSettings");
-            var secretKey = jwtSettings["SecretKey"]
+            IConfigurationSection jwtSettings = configuration.GetSection("JwtSettings");
+            string? secretKey = jwtSettings["SecretKey"]
                 ?? throw new InvalidOperationException("JWT SecretKey is not configured");
-            var key = Encoding.UTF8.GetBytes(secretKey);
+            byte[] key = Encoding.UTF8.GetBytes(secretKey);
 
             services.AddAuthentication(options =>
             {

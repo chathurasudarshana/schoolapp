@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, signal } from '@angular/core';
+import { Component, Inject, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
 import { Student } from '../../../../../sch/interfaces/student';
 import {
@@ -16,6 +16,11 @@ import { CommonModule, formatDate } from '@angular/common';
 import { Notification } from '../../../../../services/notification';
 import { SecureImage } from '../../../../../pipes/secure-image';
 import { HasUnsavedChanges } from '../../../../../interfaces/has-unsaved-changes';
+import { Auth } from '../../../../../services/auth';
+import { IdentityUserApi } from '../../../../../sch/services/identity-user-api';
+import { UserLookup } from '../../../../../sch/interfaces/user-lookup';
+import { Observable, forkJoin, of } from 'rxjs';
+import { catchError, finalize, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'sch-student-detail-page',
@@ -24,6 +29,7 @@ import { HasUnsavedChanges } from '../../../../../interfaces/has-unsaved-changes
   styleUrl: './student-detail-page.scss',
 })
 export class StudentDetailPage implements OnInit, HasUnsavedChanges {
+  protected readonly auth = inject(Auth);
   protected readonly studentId = signal(0);
   protected readonly student = signal<Student | null>(null);
   protected readonly isStudentLoading = signal(false);
@@ -32,6 +38,8 @@ export class StudentDetailPage implements OnInit, HasUnsavedChanges {
   protected readonly isDeletingImage = signal(false);
   protected readonly isImageChanged = signal(false);
   protected readonly profileImage = signal('');
+  protected readonly availableUsers = signal<UserLookup[]>([]);
+  protected readonly isUsersLoading = signal(false);
 
   protected studentForm: FormGroup;
   private profileImageFile: File | null = null;
@@ -42,6 +50,7 @@ export class StudentDetailPage implements OnInit, HasUnsavedChanges {
     private readonly fb: FormBuilder,
     private readonly studentApi: StudentApi,
     private readonly imageApi: ImageApi,
+    private readonly identityUserApi: IdentityUserApi,
     @Inject(APP_CONFIG) private readonly appConfig: AppConfig,
     private readonly notification: Notification
   ) {
@@ -53,14 +62,19 @@ export class StudentDetailPage implements OnInit, HasUnsavedChanges {
       phoneNumber: [null, [Validators.pattern('^[0-9]{10}$')]],
       ssn: [null, [Validators.required, Validators.minLength(2)]],
       startDate: [null],
+      userId: [null],
     });
+
+    // Disable userId for non-admin users
+    if (!this.auth.isAdmin()) {
+      this.studentForm.get('userId')!.disable();
+    }
   }
 
   ngOnInit(): void {
     this._avRoute.params.subscribe((params) => {
       this.studentId.set(+params['id'] || 0);
-
-      this.setStudent();
+      this.loadData();
     });
   }
 
@@ -77,40 +91,65 @@ export class StudentDetailPage implements OnInit, HasUnsavedChanges {
       phoneNumber: null,
       ssn: null,
       startDate: null,
+      userId: null,
     });
   }
 
-  private setStudent(): void {
+  private setStudent(): Observable<Student | null> {
     this.reset();
-    if (this.studentId()) {
-      this.isStudentLoading.set(true);
-      this.studentApi
-        .getStudent(this.studentId())
-        .subscribe({
-          next: (student) => {
-            if (student) {
-              if (student.startDate) {
-                student.startDate = new Date(student.startDate);
-              }
-              this.student.set(student);
-
-              this.setFormData();
-            } else {
-              this.router.navigate(['../', 0], { relativeTo: this._avRoute });
-            }
-          },
-          error: (error) => {
-            if (error.status === 404) {
-              this.router.navigate(['../', 0], { relativeTo: this._avRoute });
-            }
-          },
-        })
-        .add(() => {
-          this.isStudentLoading.set(false);
-        });
-    } else {
+    if (!this.studentId()) {
       this.setFormData();
+      return of(null);
     }
+    this.isStudentLoading.set(true);
+    return this.studentApi.getStudent(this.studentId()).pipe(
+      tap((student) => {
+        if (student) {
+          if (student.startDate) {
+            student.startDate = new Date(student.startDate);
+          }
+          this.student.set(student);
+          this.setFormData();
+        } else {
+          this.router.navigate(['../', 0], { relativeTo: this._avRoute });
+        }
+      }),
+      catchError((error) => {
+        if (error.status === 404) {
+          this.router.navigate(['../', 0], { relativeTo: this._avRoute });
+        }
+        return of(null);
+      }),
+      finalize(() => this.isStudentLoading.set(false))
+    );
+  }
+
+  private getBasicUsers(): Observable<UserLookup[]> {
+    if (!this.auth.isAdmin()) {
+      return of([]);
+    }
+    this.isUsersLoading.set(true);
+    return this.identityUserApi.getBasicOnlyUsers().pipe(
+      catchError(() => of([])),
+      finalize(() => this.isUsersLoading.set(false))
+    );
+  }
+
+  private loadData(): void {
+    forkJoin({
+      student: this.setStudent(),
+      users: this.getBasicUsers(),
+    }).subscribe({
+      next: ({ student, users }) => {
+        const currentUser: UserLookup[] = student?.user ? [student.user] : [];
+        const merged = [
+          ...currentUser,
+          ...users.filter((u) => !currentUser.some((c) => c.id === u.id)),
+        ];
+        this.availableUsers.set(merged);
+      },
+      error: () => this.availableUsers.set([]),
+    });
   }
 
   private setFormData(): void {
@@ -129,6 +168,7 @@ export class StudentDetailPage implements OnInit, HasUnsavedChanges {
         phoneNumber: student.phoneNumber,
         ssn: student.ssn,
         startDate: date,
+        userId: student.userId ?? null,
       });
     }
   }
@@ -186,6 +226,7 @@ export class StudentDetailPage implements OnInit, HasUnsavedChanges {
       startDate: new Date(this.studentForm.value.startDate),
       image: image,
       isActive: true,
+      userId: this.auth.isAdmin() ? (this.studentForm.value.userId ?? null) : undefined,
       rowVersion: this.student()?.rowVersion, // Include rowVersion for concurrency check
     };
 
@@ -199,7 +240,7 @@ export class StudentDetailPage implements OnInit, HasUnsavedChanges {
             if (this.isImageChanged() && currentStudent?.image) {
               this.deleteImage(currentStudent.image);
             }
-            this.setStudent();
+            this.loadData();
             this.notification.success('Student updated successfully');
           },
           error: (error) => {

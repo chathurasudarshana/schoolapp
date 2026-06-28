@@ -21,7 +21,7 @@ namespace SCH.Repositories.DbContexts
             // Get connection string
             string? connectionString = configuration.GetConnectionString("DefaultConnection");
 
-            var optionsBuilder = new DbContextOptionsBuilder<IdentityContext>();
+            DbContextOptionsBuilder<IdentityContext> optionsBuilder = new DbContextOptionsBuilder<IdentityContext>();
             
             // Configure with identity schema migration history
             optionsBuilder.UseSqlServer(

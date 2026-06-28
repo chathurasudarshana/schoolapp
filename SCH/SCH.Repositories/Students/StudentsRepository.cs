@@ -38,9 +38,18 @@ namespace SCH.Repositories.Students
                 .AsNoTracking()
                 .Include(s => s.StudentCourseMaps)
                 .ThenInclude(sc => sc.Course)
+                .Include(s => s.User)
                 .SingleOrDefaultAsync(s => s.Id == id);
 
             return student;
+        }
+
+        public async Task<Student?> GetStudentByUserIdAsync(int userId)
+        {
+            return await Context
+                .Student
+                .AsNoTracking()
+                .SingleOrDefaultAsync(s => s.UserId == userId);
         }
 
         public async Task InsertStudentAsync(Student student)

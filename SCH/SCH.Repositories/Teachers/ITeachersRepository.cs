@@ -8,6 +8,8 @@ namespace SCH.Repositories.Teachers
 
         Task<Teacher?> GetTeacherAsync(int id);
 
+        Task<Teacher?> GetTeacherByUserIdAsync(int userId);
+
         Task InsertTeacherAsync(Teacher teacher);
 
         /// <summary>

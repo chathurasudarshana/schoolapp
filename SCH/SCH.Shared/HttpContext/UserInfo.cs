@@ -54,7 +54,7 @@ namespace SCH.Shared.HttpContext
             if (httpContext.User?.Identity?.IsAuthenticated != true)
                 return null;
 
-            var userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            string? userIdClaim = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             
             if (string.IsNullOrEmpty(userIdClaim))
                 return null;

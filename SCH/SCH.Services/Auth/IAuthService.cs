@@ -78,6 +78,8 @@ namespace SCH.Services.Auth
         /// <param name="email">Email to check</param>
         /// <returns>True if available, false if taken</returns>
         Task<bool> IsEmailAvailableAsync(string email);
+
+        Task RevokeAllUserSessionsAsync(int userId);
     }
 }
 

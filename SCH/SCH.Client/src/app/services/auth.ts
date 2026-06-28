@@ -8,6 +8,9 @@ import { RegisterRequest } from '../interfaces/register-request';
 import { Observable, tap, catchError, throwError } from 'rxjs';
 import { APP_CONFIG } from '../injection-tokens/app-config.token';
 import { LogoutScope } from '../enums/logout-scope';
+import { Policy } from '../enums/policy';
+import { Permission, Role } from '../enums';
+import { HasPolicyData } from '../interfaces/has-policy-data';
 
 /**
  * Authentication service that manages user state, tokens, and auth logic
@@ -45,10 +48,19 @@ export class Auth {
   public readonly isAuthenticated = computed(() => this.isAuthenticatedSignal());
   public readonly isRefreshing = computed(() => this.isRefreshingSignal());
   public readonly isAdmin = computed(() =>
-    this.currentUser()?.roles.includes('Admin') ?? false
+    this.currentUser()?.roles.includes(Role.Admin) ?? false
   );
   public readonly isBasic = computed(() =>
-    this.currentUser()?.roles.includes('Basic') ?? false
+    this.currentUser()?.roles.includes(Role.Basic) ?? false
+  );
+  public readonly permissions = computed(() =>
+    this.currentUser()?.permissions ?? []
+  );
+  public readonly ownStudentId = computed(() =>
+    this.currentUser()?.ownStudentId ?? null
+  );
+  public readonly ownTeacherId = computed(() =>
+    this.currentUser()?.ownTeacherId ?? null
   );
 
   constructor() {
@@ -411,6 +423,77 @@ export class Auth {
   public hasAnyRole(roles: string[]): boolean {
     const userRoles = this.currentUser()?.roles ?? [];
     return roles.some((role) => userRoles.includes(role));
+  }
+
+  /**
+   * Check if user has a specific permission claim
+   */
+  public hasPermission(permission: string): boolean {
+    return this.permissions().includes(permission);
+  }
+
+  /**
+   * Evaluate a named policy against the current userS roles and permissions.
+   * Mirrors the backend policy definitions in AuthorizationExtensions.cs.
+   */
+  public hasPolicy(
+    policy: Policy,
+    policyData?: HasPolicyData
+  ): boolean {
+    let hasPolicy = false;
+    const isAdmin = this.isAdmin();
+    if (isAdmin) {
+      hasPolicy = true;
+    } else {
+      const perms = this.permissions();
+
+      switch (policy) {
+        case Policy.ViewStudents:
+          hasPolicy = perms.includes(Permission.StudentRead);
+          break;
+        case Policy.AddStudents:
+          hasPolicy = perms.includes(Permission.StudentAdd);
+          break;
+        case Policy.EditStudents:
+          hasPolicy = !!(perms.includes(Permission.StudentWrite) 
+            || (perms.includes(Permission.StudentWriteOwn) 
+              && policyData?.studentId
+              && this.ownStudentId()
+              && policyData.studentId === this.ownStudentId()));
+
+          break;
+        case Policy.DeleteStudents:
+          hasPolicy = perms.includes(Permission.StudentRemove);
+          break;
+        case Policy.ViewTeachers:
+          hasPolicy = perms.includes(Permission.TeacherRead);
+          break;
+        case Policy.EditTeachers:
+          hasPolicy = !!(perms.includes(Permission.TeacherWrite) 
+            || (perms.includes(Permission.TeacherWriteOwn) 
+              && policyData?.teacherId
+              && this.ownTeacherId()
+              && policyData.teacherId === this.ownTeacherId()));
+          break;
+        case Policy.DeleteTeachers:
+          hasPolicy = perms.includes(Permission.TeacherRemove);
+          break;
+        case Policy.ViewCourses:
+          hasPolicy = perms.includes(Permission.CourseRead);
+          break;
+        case Policy.AddCourses:
+          hasPolicy = perms.includes(Permission.CourseAdd);
+          break;
+        case Policy.EditCourses:
+          hasPolicy = perms.includes(Permission.CourseWrite);
+          break;
+        case Policy.DeleteCourses:
+          hasPolicy = perms.includes(Permission.CourseRemove);
+          break;
+      }
+    }
+
+    return hasPolicy;
   }
 
   /**

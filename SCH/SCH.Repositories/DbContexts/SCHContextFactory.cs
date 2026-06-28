@@ -21,7 +21,7 @@
             // Get connection string
             string? connectionString = configuration.GetConnectionString("DefaultConnection");
 
-            var optionsBuilder = new DbContextOptionsBuilder<SCHContext>();
+            DbContextOptionsBuilder<SCHContext> optionsBuilder = new DbContextOptionsBuilder<SCHContext>();
             
             // Configure with dbo schema migration history
             optionsBuilder.UseSqlServer(

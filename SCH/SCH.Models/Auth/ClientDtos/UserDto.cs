@@ -60,6 +60,12 @@ namespace SCH.Models.Auth.ClientDtos
         /// Must be sent back when updating to detect concurrent modifications
         /// </summary>
         public string? ConcurrencyStamp { get; set; }
+
+        public List<string> Permissions { get; set; } = new List<string>();
+
+        public int? OwnStudentId { get; set; }
+
+        public int? OwnTeacherId { get; set; }
     }
 }
 

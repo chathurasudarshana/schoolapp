@@ -26,6 +26,7 @@ namespace SCH.Repositories.Users
         /// Deletes a user
         /// </summary>
         Task DeleteAsync(int id);
+
     }
 }
 

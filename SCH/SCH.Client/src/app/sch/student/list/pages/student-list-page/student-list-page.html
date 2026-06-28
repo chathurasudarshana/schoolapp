@@ -1,9 +1,11 @@
 <button
+  *hasPolicy="Policy.AddStudents"
   (click)="onAdd()"
   [disabled]="gridDataLoading() || isDeleting()"
 >Add</button>
 
 <button
+  *hasPolicy="Policy.DeleteStudents"
   (click)="onRemoveShown()"
   [disabled]="gridDataLoading() || isDeleting() || rowData().length === 0"
 >Remove Shown</button>

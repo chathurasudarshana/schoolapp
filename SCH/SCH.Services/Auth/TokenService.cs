@@ -36,13 +36,16 @@ namespace SCH.Services.Auth
             int userId,
             string username,
             string email,
-            IList<string> roles)
+            IList<string> roles,
+            IList<string>? permissions = null,
+            int? ownStudentId = null,
+            int? ownTeacherId = null)
         {
-            var tokenId = Guid.NewGuid().ToString();
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+            string tokenId = Guid.NewGuid().ToString();
+            SymmetricSecurityKey securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
+            SigningCredentials credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            var claims = new List<Claim>
+            List<Claim> claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, tokenId),
@@ -54,12 +57,34 @@ namespace SCH.Services.Auth
             };
 
             // Add roles as claims
-            foreach (var role in roles)
+            foreach (string role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
 
-            var token = new JwtSecurityToken(
+            // Add deduplicated permission claims
+            if (permissions != null)
+            {
+                foreach (string permission in permissions.Distinct())
+                {
+                    claims.Add(new Claim("permission", permission));
+                }
+            }
+
+            // Add own-record claims so frontend/backend can enforce record-level access
+            if (ownStudentId.HasValue)
+            {
+                claims.Add(new Claim("own_student_id", ownStudentId.Value.ToString()));
+            }
+
+
+            if (ownTeacherId.HasValue)
+            {
+                claims.Add(new Claim("own_teacher_id", ownTeacherId.Value.ToString()));
+            }
+
+
+            JwtSecurityToken token = new JwtSecurityToken(
                 issuer: _issuer,
                 audience: _audience,
                 claims: claims,
@@ -67,7 +92,7 @@ namespace SCH.Services.Auth
                 signingCredentials: credentials
             );
 
-            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+            string tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
             return await Task.FromResult((tokenString, tokenId));
         }
@@ -77,8 +102,8 @@ namespace SCH.Services.Auth
         /// </summary>
         public string GenerateRefreshToken()
         {
-            var randomBytes = new byte[64];
-            using var rng = RandomNumberGenerator.Create();
+            byte[] randomBytes = new byte[64];
+            using RandomNumberGenerator rng = RandomNumberGenerator.Create();
             rng.GetBytes(randomBytes);
             return Convert.ToBase64String(randomBytes);
         }
@@ -90,7 +115,7 @@ namespace SCH.Services.Auth
         {
             try
             {
-                var tokenValidationParameters = new TokenValidationParameters
+                TokenValidationParameters tokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey)),
@@ -102,8 +127,8 @@ namespace SCH.Services.Auth
                     ClockSkew = TimeSpan.Zero
                 };
 
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
+                JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+                ClaimsPrincipal principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
 
                 if (securityToken is not JwtSecurityToken jwtSecurityToken ||
                     !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
@@ -129,11 +154,11 @@ namespace SCH.Services.Auth
 
             try
             {
-                var tokenHandler = new JwtSecurityTokenHandler();
+                JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
                 if (!tokenHandler.CanReadToken(token))
                     return false;
 
-                var jwtToken = tokenHandler.ReadJwtToken(token);
+                JwtSecurityToken jwtToken = tokenHandler.ReadJwtToken(token);
                 return jwtToken != null;
             }
             catch
