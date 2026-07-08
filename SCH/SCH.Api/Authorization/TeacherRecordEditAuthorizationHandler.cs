@@ -2,14 +2,15 @@ namespace SCH.API.Authorization
 {
     using Microsoft.AspNetCore.Authorization;
     using SCH.Models.Auth.Constants;
+    using SCH.Shared.HttpContext;
 
     public class TeacherRecordEditAuthorizationHandler : AuthorizationHandler<TeacherRecordEditAuthorizationRequirement>
     {
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IRouteInfo _routeInfo;
 
-        public TeacherRecordEditAuthorizationHandler(IHttpContextAccessor httpContextAccessor)
+        public TeacherRecordEditAuthorizationHandler(IRouteInfo routeInfo)
         {
-            _httpContextAccessor = httpContextAccessor;
+            _routeInfo = routeInfo;
         }
 
         protected override Task HandleRequirementAsync(
@@ -28,8 +29,7 @@ namespace SCH.API.Authorization
             // Users with teachers:write-own can only edit their own record
             string? ownTeacherIdClaim = context.User.FindFirst("own_teacher_id")?.Value;
             if (!string.IsNullOrEmpty(ownTeacherIdClaim)) {
-                RouteData? routeData = _httpContextAccessor.HttpContext?.GetRouteData();
-                string? routeId = routeData?.Values["id"]?.ToString();
+                string? routeId = _routeInfo.GetRouteDataValue("id");
 
                 if (!string.IsNullOrEmpty(routeId) && ownTeacherIdClaim == routeId) {
                     context.Succeed(requirement);

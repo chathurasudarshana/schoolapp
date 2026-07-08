@@ -1,8 +1,8 @@
 namespace SCH.Services.Students
 {
     using AutoMapper;
-    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
+    using SCH.Shared.HttpContext;
     using SCH.Models.Auth.Constants;
     using SCH.Models.Auth.Entities;
     using SCH.Models.Common.GridEntities;
@@ -27,7 +27,7 @@ namespace SCH.Services.Students
         private readonly UserManager<ApplicationUser> userManager;
         private readonly IAuthService authService;
         private readonly IMapper mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IUserInfo userInfo;
 
 
         public StudentsService(
@@ -38,7 +38,7 @@ namespace SCH.Services.Students
             UserManager<ApplicationUser> userManager,
             IAuthService authService,
             IMapper mapper,
-            IHttpContextAccessor httpContextAccessor) 
+            IUserInfo userInfo) 
         { 
             this.unitOfWork = unitOfWork;
             this.studentsRepository = studentsRepository;
@@ -47,7 +47,7 @@ namespace SCH.Services.Students
             this.userManager = userManager;
             this.authService = authService;
             this.mapper = mapper;
-            _httpContextAccessor = httpContextAccessor;
+            this.userInfo = userInfo;
         }
 
         public async Task<List<StudentDto>> GetStudentsAsync(bool? isActive)
@@ -118,7 +118,7 @@ namespace SCH.Services.Students
 
             await ValidateCourses(student);
 
-            bool isAdmin = _httpContextAccessor.HttpContext?.User.IsInRole(Role.Admin) == true;
+            bool isAdmin = this.userInfo.IsInRole(Role.Admin);
 
             int? oldUserId = studentEntity.UserId;
             int? newUserId = student.UserId;

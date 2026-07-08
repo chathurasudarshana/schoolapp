@@ -27,5 +27,10 @@ namespace SCH.Shared.HttpContext
         /// Checks if a user is currently authenticated
         /// </summary>
         bool IsAuthenticated();
+
+        /// <summary>
+        /// Checks if the current user is in the specified role
+        /// </summary>
+        bool IsInRole(string role);
     }
 }

@@ -38,6 +38,11 @@ namespace SCH.Shared.HttpContext
             return IsAuthenticated(_httpContextAccessor.HttpContext);
         }
 
+        bool IUserInfo.IsInRole(string role)
+        {
+            return IsInRole(_httpContextAccessor.HttpContext, role);
+        }
+
         #endregion
 
         #region Static Methods (for direct access when HttpContext is available)
@@ -101,6 +106,11 @@ namespace SCH.Shared.HttpContext
         public static bool IsAuthenticated(HttpContext? httpContext)
         {
             return httpContext?.User?.Identity?.IsAuthenticated == true;
+        }
+
+        public static bool IsInRole(HttpContext? httpContext, string role)
+        {
+            return httpContext?.User?.IsInRole(role) == true;
         }
 
         #endregion

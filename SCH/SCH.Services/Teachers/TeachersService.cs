@@ -1,8 +1,8 @@
 namespace SCH.Services.Teachers
 {
     using AutoMapper;
-    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Identity;
+    using SCH.Shared.HttpContext;
     using SCH.Models.Auth.Constants;
     using SCH.Models.Auth.Entities;
     using SCH.Models.Teachers.ClientDtos;
@@ -19,7 +19,7 @@ namespace SCH.Services.Teachers
         private readonly UserManager<ApplicationUser> userManager;
         private readonly IAuthService authService;
         private readonly IMapper mapper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IUserInfo userInfo;
 
         public TeachersService(
             ISCHUnitOfWork unitOfWork,
@@ -27,14 +27,14 @@ namespace SCH.Services.Teachers
             UserManager<ApplicationUser> userManager,
             IAuthService authService,
             IMapper mapper,
-            IHttpContextAccessor httpContextAccessor)
+            IUserInfo userInfo)
         {
             this.unitOfWork = unitOfWork;
             this.teachersRepository = teachersRepository;
             this.userManager = userManager;
             this.authService = authService;
             this.mapper = mapper;
-            this._httpContextAccessor = httpContextAccessor;
+            this.userInfo = userInfo;
         }
 
         public async Task<List<TeacherDto>> GetTeachersAsync()
@@ -80,7 +80,7 @@ namespace SCH.Services.Teachers
                 throw SCHDomainException.NotFound();
             }
 
-            bool isAdmin = _httpContextAccessor.HttpContext?.User.IsInRole(Role.Admin) == true;
+            bool isAdmin = this.userInfo.IsInRole(Role.Admin);
             int? oldUserId = teacherEntity.UserId;
             int? newUserId = teacher.UserId;
 

@@ -2,14 +2,15 @@ namespace SCH.API.Authorization
 {
     using Microsoft.AspNetCore.Authorization;
     using SCH.Models.Auth.Constants;
+    using SCH.Shared.HttpContext;
 
     public class StudentRecordEditAuthorizationHandler : AuthorizationHandler<StudentRecordEditAuthorizationRequirement>
     {
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IRouteInfo _routeInfo;
 
-        public StudentRecordEditAuthorizationHandler(IHttpContextAccessor httpContextAccessor)
+        public StudentRecordEditAuthorizationHandler(IRouteInfo routeInfo)
         {
-            _httpContextAccessor = httpContextAccessor;
+            _routeInfo = routeInfo;
         }
 
         protected override Task HandleRequirementAsync(
@@ -28,8 +29,7 @@ namespace SCH.API.Authorization
             string? ownStudentIdClaim = context.User.FindFirst("own_student_id")?.Value;
             if (!string.IsNullOrEmpty(ownStudentIdClaim))
             {
-                RouteData? routeData = _httpContextAccessor.HttpContext?.GetRouteData();
-                string? routeId = routeData?.Values["id"]?.ToString();
+                string? routeId = _routeInfo.GetRouteDataValue("id");
 
                 if (!string.IsNullOrEmpty(routeId) && ownStudentIdClaim == routeId)
                 {

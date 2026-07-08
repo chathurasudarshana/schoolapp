@@ -36,7 +36,7 @@ namespace SCH.Core.Extensions
                         i.GetInterfaces()
                         .Any(ip => ip == superInterfaceType));
 
-                services.AddScoped(parentInterface, type);
+                services.AddSingleton(parentInterface, type);
             }
         }
     }
