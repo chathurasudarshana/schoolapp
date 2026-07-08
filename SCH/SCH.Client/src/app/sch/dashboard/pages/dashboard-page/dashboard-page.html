@@ -1,4 +1,29 @@
 <div class="dashboard-page">
   <h1>Dashboard</h1>
-  <!-- Dashboard content will go here -->
+  <h2>Course Enrollment</h2>
+
+  @if (loading()) {
+    <p>Loading...</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Course</th>
+          <th>Students</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row.id) {
+          <tr>
+            <td>{{ row.id }}</td>
+            <td>{{ row.name }}</td>
+            <td>{{ row.studentCount }}</td>
+          </tr>
+        } @empty {
+          <tr><td colspan="3">No courses found.</td></tr>
+        }
+      </tbody>
+    </table>
+  }
 </div>

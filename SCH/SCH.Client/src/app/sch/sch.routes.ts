@@ -6,6 +6,7 @@ import { courseRoutes } from "./course/course.routes";
 import { CourseApi } from "./services/course-api";
 import { teacherRoutes } from "./teacher/teacher.routes";
 import { TeacherApi } from "./services/teacher-api";
+import { DashboardApi } from './services/dashboard-api';
 import { dashboardRoutes } from "./dashboard/dashboard.routes";
 import { IdentityUserApi } from "./services/identity-user-api";
 
@@ -17,6 +18,12 @@ export const schRoutes: Routes = [
   },
   {
     path: 'dashboard',
+    providers: [
+      {
+        provide: DashboardApi,
+        useClass: DashboardApi
+      }
+    ],
     children: dashboardRoutes
   },
   {

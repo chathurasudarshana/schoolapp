@@ -69,5 +69,6 @@
   </ItemGroup>
   <ItemGroup>
     <Build Include="dbo\Stored Procedures\GetStudentGrid.sql" />
+    <Build Include="dbo\Stored Procedures\GetCourseStudentCount.sql" />
   </ItemGroup>
 </Project>

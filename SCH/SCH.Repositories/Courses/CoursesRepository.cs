@@ -2,6 +2,7 @@ namespace SCH.Repositories.Courses
 {
     using Microsoft.EntityFrameworkCore;
     using SCH.Models.Courses.Entities;
+    using SCH.Models.Dashboard;
     using SCH.Repositories.Common;
     using SCH.Repositories.DbContexts;
     using System.Collections.Generic;
@@ -66,6 +67,13 @@ namespace SCH.Repositories.Courses
             {
                 Context.Course.Remove(courseEntity);
             }
+        }
+
+        public async Task<List<CourseStudentCountDto>> GetCourseStudentCountAsync()
+        {
+            return await Context.Database
+                .SqlQueryRaw<CourseStudentCountDto>("EXEC dbo.GetCourseStudentCount")
+                .ToListAsync();
         }
     }
 }

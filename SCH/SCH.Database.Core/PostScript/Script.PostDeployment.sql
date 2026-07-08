@@ -1370,3 +1370,85 @@ BEGIN
 END
 
 GO
+
+-- =============================================
+-- SECTION 9: Seed Course Records
+-- =============================================
+IF NOT EXISTS (SELECT 1 FROM [dbo].[Course])
+BEGIN
+    DECLARE @AdminUserIdForCourses INT = (SELECT TOP 1 [Id] FROM [identity].[AspNetUsers] WHERE [UserName] = 'admin');
+
+    INSERT INTO [dbo].[Course]
+    (
+        [Name],
+        [CreatedBy],
+        [CreatedDate],
+        [ModifiedBy],
+        [ModifiedDate]
+    )
+    VALUES
+    ('Mathematics', @AdminUserIdForCourses, GETUTCDATE(), NULL, NULL),
+    ('Science',     @AdminUserIdForCourses, GETUTCDATE(), NULL, NULL),
+    ('English',     @AdminUserIdForCourses, GETUTCDATE(), NULL, NULL),
+    ('History',     @AdminUserIdForCourses, GETUTCDATE(), NULL, NULL); -- no students enrolled
+
+    PRINT 'Course records seeded';
+END
+
+GO
+
+-- =============================================
+-- SECTION 10: Seed Student-Course Mappings
+-- (History is intentionally left with no students)
+-- =============================================
+IF NOT EXISTS (SELECT 1 FROM [dbo].[StudentCourseMap])
+BEGIN
+    DECLARE @AdminUserIdForMaps INT = (SELECT TOP 1 [Id] FROM [identity].[AspNetUsers] WHERE [UserName] = 'admin');
+
+    DECLARE @MathId    INT = (SELECT [Id] FROM [dbo].[Course] WHERE [Name] = 'Mathematics');
+    DECLARE @ScienceId INT = (SELECT [Id] FROM [dbo].[Course] WHERE [Name] = 'Science');
+    DECLARE @EnglishId INT = (SELECT [Id] FROM [dbo].[Course] WHERE [Name] = 'English');
+
+    DECLARE @S1Id INT = (SELECT [Id] FROM [dbo].[Student] WHERE [Email] = 'email1@mail.com');
+    DECLARE @S2Id INT = (SELECT [Id] FROM [dbo].[Student] WHERE [Email] = 'email2@mail.com');
+    DECLARE @S3Id INT = (SELECT [Id] FROM [dbo].[Student] WHERE [Email] = 'email3@mail.com');
+    DECLARE @S4Id INT = (SELECT [Id] FROM [dbo].[Student] WHERE [Email] = 'email4@mail.com');
+    DECLARE @S5Id INT = (SELECT [Id] FROM [dbo].[Student] WHERE [Email] = 'email5@mail.com');
+
+    IF @S1Id IS NULL OR @S2Id IS NULL OR @S3Id IS NULL OR @S4Id IS NULL OR @S5Id IS NULL
+    BEGIN
+        PRINT 'Skipping Student-Course mappings: one or more expected student records not found';
+    END
+    ELSE
+    BEGIN
+    INSERT INTO [dbo].[StudentCourseMap]
+    (
+        [StudentId],
+        [CourseId],
+        [EnrollmentDate],
+        [CreatedBy],
+        [CreatedDate],
+        [ModifiedBy],
+        [ModifiedDate]
+    )
+    VALUES
+    -- Student 1: Mathematics + Science
+    (@S1Id, @MathId,    '2024-11-11', @AdminUserIdForMaps, GETUTCDATE(), NULL, NULL),
+    (@S1Id, @ScienceId, '2024-11-11', @AdminUserIdForMaps, GETUTCDATE(), NULL, NULL),
+    -- Student 2: Mathematics + English
+    (@S2Id, @MathId,    '2024-11-12', @AdminUserIdForMaps, GETUTCDATE(), NULL, NULL),
+    (@S2Id, @EnglishId, '2024-11-12', @AdminUserIdForMaps, GETUTCDATE(), NULL, NULL),
+    -- Student 3: Mathematics only
+    (@S3Id, @MathId,    '2024-11-13', @AdminUserIdForMaps, GETUTCDATE(), NULL, NULL),
+    -- Student 4: Mathematics + Science + English
+    (@S4Id, @MathId,    '2024-11-14', @AdminUserIdForMaps, GETUTCDATE(), NULL, NULL),
+    (@S4Id, @ScienceId, '2024-11-14', @AdminUserIdForMaps, GETUTCDATE(), NULL, NULL),
+    (@S4Id, @EnglishId, '2024-11-14', @AdminUserIdForMaps, GETUTCDATE(), NULL, NULL),
+    -- Student 5: English only
+    (@S5Id, @EnglishId, '2024-11-15', @AdminUserIdForMaps, GETUTCDATE(), NULL, NULL);
+
+    PRINT 'Student-Course mappings seeded';
+    END -- end ELSE
+END
+
+GO

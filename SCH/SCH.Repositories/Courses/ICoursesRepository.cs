@@ -1,6 +1,7 @@
 namespace SCH.Repositories.Courses
 {
     using SCH.Models.Courses.Entities;
+    using SCH.Models.Dashboard;
 
     public interface ICoursesRepository: IRepository
     {
@@ -18,5 +19,7 @@ namespace SCH.Repositories.Courses
         void UpdateAsync(Course course);
 
         Task DeleteCourseAsync(int id);
+
+        Task<List<CourseStudentCountDto>> GetCourseStudentCountAsync();
     }
 }
