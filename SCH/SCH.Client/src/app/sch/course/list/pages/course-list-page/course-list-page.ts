@@ -9,11 +9,12 @@ import {
 } from 'ag-grid-community';
 import { Course } from '../../../../../sch/interfaces/course';
 import { ActivatedRoute, Router } from '@angular/router';
-import { concat, Observable } from 'rxjs';
+import { concat, finalize, Observable } from 'rxjs';
 import { Notification } from '../../../../../services/notification';
 import { ConfirmDialog } from '../../../../../selectors/confirm-dialog/confirm-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { CourseApi } from '../../../../../sch/services/course-api';
+import { CacheApi } from '../../../../../services/cache-api';
 import { Auth } from '../../../../../services/auth';
 import { Policy } from '../../../../../enums/policy';
 import { HasPolicy } from '../../../../../directives/has-policy.directive';
@@ -70,12 +71,14 @@ export class CourseListPage {
 
   protected readonly gridDataLoading = signal(false);
   protected readonly isDeleting = signal(false);
+  protected readonly clearingCoursesCache = signal(false);
 
 
   constructor(
     private readonly router: Router,
     private readonly _avRoute: ActivatedRoute,
     private readonly courseApi: CourseApi,
+    private readonly cacheApi: CacheApi,
     private readonly notification: Notification,
     @Inject(MatDialog) private readonly dialog: MatDialog
   ) { }
@@ -89,7 +92,7 @@ export class CourseListPage {
     this.gridDataLoading.set(true);
 
     this.courseApi
-      .getCourses()
+      .getCourses(true)
       .subscribe((data) => {
         if (data?.length) {
 
@@ -157,6 +160,13 @@ export class CourseListPage {
       }
     });
 
+  }
+
+  protected clearCoursesCache(): void {
+    this.clearingCoursesCache.set(true);
+    this.cacheApi.removeCacheEntry('courses-list').pipe(
+      finalize(() => this.clearingCoursesCache.set(false))
+    ).subscribe();
   }
 
   protected onAdd(): void {

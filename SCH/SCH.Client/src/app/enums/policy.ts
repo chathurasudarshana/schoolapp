@@ -10,4 +10,5 @@ export enum Policy {
   AddCourses = 'AddCourses',
   EditCourses = 'EditCourses',
   DeleteCourses = 'DeleteCourses',
+  ClearCache = 'ClearCache',
 }

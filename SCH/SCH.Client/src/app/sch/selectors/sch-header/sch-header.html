@@ -34,6 +34,14 @@
               <span>Settings</span>
             </button>
             <mat-divider></mat-divider>
+            <button 
+              mat-menu-item 
+              *hasPolicy="Policy.ClearCache" 
+              [disabled]="clearingCache()" 
+              (click)="clearCache()">
+              <mat-icon>cached</mat-icon>
+              <span>Clear Cache</span>
+            </button>
             <button mat-menu-item (click)="logout()">
               <mat-icon>logout</mat-icon>
               <span>Logout</span>

@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { AppConfig } from '../../interfaces/app-config';
 import { APP_CONFIG } from '../../injection-tokens/app-config.token';
@@ -17,9 +17,9 @@ export class CourseApi {
     this.apiUrl = this.appConfig.apiUrl;
   }
 
-  public getCourses(): Observable<Array<Course>> {
-
-    return this.http.get<Array<Course>>(`${this.apiUrl}/courses`);
+  public getCourses(useCache: boolean = false): Observable<Array<Course>> {
+    const params = new HttpParams().set('useCache', useCache);
+    return this.http.get<Array<Course>>(`${this.apiUrl}/courses`, { params });
   }
 
   public getCourse(id: number): Observable<Course> {

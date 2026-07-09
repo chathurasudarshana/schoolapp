@@ -24,10 +24,10 @@ namespace SCH.API.Controllers
         // GET: api/<CoursesController>
         [HttpGet]
         [Authorize(Policy = Policy.ViewCourses)]
-        public async Task<IActionResult> GetCourseAsync()
+        public async Task<IActionResult> GetCourseAsync([FromQuery] bool useCache = false)
         {
             List<CourseDto> courses = await coursesService
-                .GetCoursesAsync();
+                .GetCoursesAsync(useCache);
 
             return Ok(courses);
         }

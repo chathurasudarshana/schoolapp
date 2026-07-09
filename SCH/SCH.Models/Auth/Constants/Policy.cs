@@ -15,5 +15,7 @@ namespace SCH.Models.Auth.Constants
         public const string AddCourses = "AddCourses";
         public const string EditCourses = "EditCourses";
         public const string DeleteCourses = "DeleteCourses";
+
+        public const string ClearCache = "ClearCache";
     }
 }

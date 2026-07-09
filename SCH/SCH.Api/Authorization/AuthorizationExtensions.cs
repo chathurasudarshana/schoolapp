@@ -80,6 +80,11 @@ namespace SCH.API.Authorization
                         ctx.User.IsInRole(Role.Admin) ||
                         ctx.User.HasClaim(Permission.ClaimType, Permission.Course.Remove)));
 
+                // ---- Cache policies ----
+
+                options.AddPolicy(Policy.ClearCache, policy =>
+                    policy.RequireRole(Role.Admin));
+
             });
 
             return services;

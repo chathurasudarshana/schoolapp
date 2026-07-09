@@ -4,7 +4,7 @@
 
     public interface ICoursesService: IService
     {
-        Task<List<CourseDto>> GetCoursesAsync();
+        Task<List<CourseDto>> GetCoursesAsync(bool useCache = false);
 
         Task<CourseDto?> GetCourseAsync(int id);
 

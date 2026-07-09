@@ -2,8 +2,8 @@ using Microsoft.OpenApi.Models;
 using NLog.Extensions.Logging;
 using SCH.API.Authorization;
 using SCH.Core.Cors;
-using SCH.Core.Extensions;
 using SCH.Core.ErrorHandling;
+using SCH.Core.Extensions;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +14,9 @@ builder.Services.AddAllowedOrigins(
 
 // Add HttpContext services (IHttpContextAccessor, IUserInfo, etc.)
 builder.Services.AddHttpContextServices();
+
+// Register IMemoryCache and ICacheService
+builder.Services.AddCacheServices();
 
 // Add services to the container.
 

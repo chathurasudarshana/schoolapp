@@ -10,6 +10,12 @@
     [disabled]="gridDataLoading() || isDeleting() || rowData().length === 0"
 >Remove All</button>
 
+<button
+    *hasPolicy="Policy.ClearCache"
+    (click)="clearCoursesCache()"
+    [disabled]="clearingCoursesCache()"
+>Clear Cache</button>
+
 <div class="content">
     <!-- The AG Grid component, with Dimensions, CSS Theme, Row Data, and Column Definition -->
     <ag-grid-angular
