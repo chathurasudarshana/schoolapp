@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { HTTP_INTERCEPTORS, HttpClient, HttpErrorResponse, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { UnauthorizedInterceptor } from './unauthorized.interceptor';
+import { unauthorizedInterceptor } from './unauthorized.interceptor';
 
 describe('UnauthorizedInterceptor', () => {
   let httpClient: HttpClient;
@@ -14,13 +14,8 @@ describe('UnauthorizedInterceptor', () => {
 
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClient(withInterceptors([unauthorizedInterceptor])),
         provideHttpClientTesting(),
-        {
-          provide: HTTP_INTERCEPTORS,
-          useClass: UnauthorizedInterceptor,
-          multi: true
-        },
         { provide: Router, useValue: routerSpy }
       ]
     });
@@ -34,14 +29,14 @@ describe('UnauthorizedInterceptor', () => {
     httpTestingController.verify();
   });
 
-  it('should navigate to unauthorized page on HTTP 401 error', () => {
+  it('should navigate to login page on HTTP 401 error', () => {
     const testUrl = '/api/test';
 
     httpClient.get(testUrl).subscribe({
       next: () => fail('should have failed with 401 error'),
       error: (error: HttpErrorResponse) => {
         expect(error.status).toBe(401);
-        expect(router.navigate).toHaveBeenCalledWith(['/unauthorized']);
+        expect(router.navigate).toHaveBeenCalledWith(['/login']);
       }
     });
 

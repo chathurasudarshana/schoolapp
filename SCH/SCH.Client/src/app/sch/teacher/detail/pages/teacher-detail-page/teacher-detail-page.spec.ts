@@ -1,9 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { of, throwError } from 'rxjs';
 
 import { TeacherDetailPage } from './teacher-detail-page';
 import { TeacherApi } from '../../../../../sch/services/teacher-api';
+import { IdentityUserApi } from '../../../../services/identity-user-api';
 import { APP_CONFIG } from '../../../../../injection-tokens/app-config.token';
 import { Notification } from '../../../../../services/notification';
 
@@ -12,6 +15,7 @@ describe('TeacherDetailPage', () => {
   let fixture: ComponentFixture<TeacherDetailPage>;
 
   let teacherApiMock: jasmine.SpyObj<TeacherApi>;
+  let identityUserApiMock: jasmine.SpyObj<IdentityUserApi>;
   let routerMock: jasmine.SpyObj<Router>;
   let notificationMock: jasmine.SpyObj<Notification>;
 
@@ -21,6 +25,8 @@ describe('TeacherDetailPage', () => {
       'insertTeacher',
       'updateTeacher',
     ]);
+    identityUserApiMock = jasmine.createSpyObj('IdentityUserApi', ['getBasicOnlyUsers']);
+    identityUserApiMock.getBasicOnlyUsers.and.returnValue(of([]));
     routerMock = jasmine.createSpyObj('Router', ['navigate']);
     notificationMock = jasmine.createSpyObj('Notification', [
       'success',
@@ -35,9 +41,12 @@ describe('TeacherDetailPage', () => {
           useValue: { params: of(params), snapshot: {} },
         },
         { provide: TeacherApi, useValue: teacherApiMock },
+        { provide: IdentityUserApi, useValue: identityUserApiMock },
         { provide: Router, useValue: routerMock },
         { provide: Notification, useValue: notificationMock },
         { provide: APP_CONFIG, useValue: { apiUrl: 'http://test' } },
+        provideHttpClient(),
+        provideHttpClientTesting(),
       ],
     }).compileComponents();
 
@@ -102,13 +111,12 @@ describe('TeacherDetailPage', () => {
     component = fixture.componentInstance;
     fixture.detectChanges();
 
-    (component as any).teacherForm.setValue({ id: 9, name: 'New' });
+    (component as any).teacherForm.patchValue({ id: 9, name: 'New' });
     (component as any).onSubmit();
 
-    expect(teacherApiMock.updateTeacher).toHaveBeenCalledWith({
-      id: 9,
-      name: 'New',
-    } as any);
+    expect(teacherApiMock.updateTeacher).toHaveBeenCalledWith(
+      jasmine.objectContaining({ id: 9, name: 'New' })
+    );
     expect(notificationMock.success).toHaveBeenCalled();
   });
 
@@ -116,13 +124,12 @@ describe('TeacherDetailPage', () => {
     await setupWithParams({ id: 0 });
     teacherApiMock.insertTeacher.and.returnValue(of(11));
 
-    (component as any).teacherForm.setValue({ id: 0, name: 'Created' });
+    (component as any).teacherForm.patchValue({ id: 0, name: 'Created' });
     (component as any).onSubmit();
 
-    expect(teacherApiMock.insertTeacher).toHaveBeenCalledWith({
-      id: 0,
-      name: 'Created',
-    } as any);
+    expect(teacherApiMock.insertTeacher).toHaveBeenCalledWith(
+      jasmine.objectContaining({ id: 0, name: 'Created' })
+    );
     expect(routerMock.navigate).toHaveBeenCalled();
     expect(notificationMock.success).toHaveBeenCalled();
   });

@@ -1,10 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { of, throwError } from 'rxjs';
 
 import { StudentDetailPage } from './student-detail-page';
 import { StudentApi } from '../../../services/student-api';
 import { ImageApi } from '../../../../../sch/services/image-api';
+import { IdentityUserApi } from '../../../../services/identity-user-api';
 import { APP_CONFIG } from '../../../../../injection-tokens/app-config.token';
 import { Notification } from '../../../../../services/notification';
 
@@ -14,6 +17,7 @@ describe('StudentDetailPage', () => {
 
   let studentApiMock: jasmine.SpyObj<StudentApi>;
   let imageApiMock: jasmine.SpyObj<ImageApi>;
+  let identityUserApiMock: jasmine.SpyObj<IdentityUserApi>;
   let routerMock: jasmine.SpyObj<Router>;
   let notificationMock: jasmine.SpyObj<Notification>;
 
@@ -27,6 +31,8 @@ describe('StudentDetailPage', () => {
       'uploadStudentProfile',
       'deleteStudentProfile',
     ]);
+    identityUserApiMock = jasmine.createSpyObj('IdentityUserApi', ['getBasicOnlyUsers']);
+    identityUserApiMock.getBasicOnlyUsers.and.returnValue(of([]));
     routerMock = jasmine.createSpyObj('Router', ['navigate']);
     notificationMock = jasmine.createSpyObj('Notification', [
       'success',
@@ -42,9 +48,12 @@ describe('StudentDetailPage', () => {
         },
         { provide: StudentApi, useValue: studentApiMock },
         { provide: ImageApi, useValue: imageApiMock },
+        { provide: IdentityUserApi, useValue: identityUserApiMock },
         { provide: Router, useValue: routerMock },
         { provide: Notification, useValue: notificationMock },
         { provide: APP_CONFIG, useValue: { apiUrl: 'http://test' } },
+        provideHttpClient(),
+        provideHttpClientTesting(),
       ],
     }).compileComponents();
   }
@@ -166,7 +175,7 @@ describe('StudentDetailPage', () => {
       'pic.jpg',
       { type: 'image/jpeg' }
     );
-    (component as any).isImageChanged = true;
+    (component as any).isImageChanged.set(true);
     (component as any).studentForm.patchValue({
       id: 0,
       firstName: 'AA',

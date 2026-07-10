@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { of } from 'rxjs';
 
 import { StudentListPage } from './student-list-page';
@@ -34,12 +36,14 @@ describe('StudentListPage', () => {
     await TestBed.configureTestingModule({
       imports: [StudentListPage],
       providers: [
-        { provide: ActivatedRoute, useValue: { params: of({}), snapshot: {} } },
+        { provide: ActivatedRoute, useValue: { params: of({}), snapshot: { queryParams: {} } } },
         { provide: StudentApi, useValue: studentApiMock },
         { provide: APP_CONFIG, useValue: { apiUrl: 'http://test' } },
         { provide: ToastrService, useValue: toastrMock },
         { provide: ImageApi, useValue: imageApiMock },
         { provide: Router, useValue: routerMock },
+        provideHttpClient(),
+        provideHttpClientTesting(),
       ],
     }).compileComponents();
 
@@ -52,15 +56,15 @@ describe('StudentListPage', () => {
     expect(component).toBeTruthy();
   });
 
-  it('loads grid data on grid ready', () => {
-    const students = [{ id: 1, firstName: 'A' } as any];
-    studentApiMock.getStudents.and.returnValue(of(students));
+  it('sets up server-side datasource on grid ready', () => {
+    const gridApiMock = jasmine.createSpyObj('GridApi', ['setGridOption', 'paginationGetPageSize']);
+    gridApiMock.paginationGetPageSize.and.returnValue(10);
 
-    (component as any).onGridReady({} as any);
+    (component as any).onGridReady({ api: gridApiMock } as any);
 
-    expect(studentApiMock.getStudents).toHaveBeenCalledWith(true);
-    expect((component as any).rowData.length).toBe(1);
-    expect((component as any).gridDataLoading).toBeFalse();
+    expect(gridApiMock.setGridOption).toHaveBeenCalledWith(
+      'serverSideDatasource', jasmine.any(Object)
+    );
   });
 
   it('onAdd navigates to create student', () => {

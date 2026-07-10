@@ -105,10 +105,9 @@ describe('CourseDetailPage', () => {
     (component as any).courseForm.setValue({ id: 9, name: 'New' });
     (component as any).onSubmit();
 
-    expect(courseApiMock.updateCourse).toHaveBeenCalledWith({
-      id: 9,
-      name: 'New',
-    } as any);
+    expect(courseApiMock.updateCourse).toHaveBeenCalledWith(
+      jasmine.objectContaining({ id: 9, name: 'New' })
+    );
     expect(notificationMock.success).toHaveBeenCalled();
   });
 
@@ -119,10 +118,9 @@ describe('CourseDetailPage', () => {
     (component as any).courseForm.setValue({ id: 0, name: 'Created' });
     (component as any).onSubmit();
 
-    expect(courseApiMock.insertCourse).toHaveBeenCalledWith({
-      id: 0,
-      name: 'Created',
-    } as any);
+    expect(courseApiMock.insertCourse).toHaveBeenCalledWith(
+      jasmine.objectContaining({ id: 0, name: 'Created' })
+    );
     expect(routerMock.navigate).toHaveBeenCalled();
     expect(notificationMock.success).toHaveBeenCalled();
   });

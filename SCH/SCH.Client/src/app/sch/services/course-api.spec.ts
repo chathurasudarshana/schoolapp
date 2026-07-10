@@ -31,7 +31,7 @@ describe('CourseApi', () => {
 
   it('getCourses GETs list', () => {
     service.getCourses().subscribe();
-    const req = httpMock.expectOne(`${apiUrl}/courses`);
+    const req = httpMock.expectOne(`${apiUrl}/courses?useCache=false`);
     expect(req.request.method).toBe('GET');
     req.flush([]);
   });

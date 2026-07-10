@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ChangeDetectorRef } from '@angular/core';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { of, throwError } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -8,6 +10,7 @@ import { CellClickedEvent, ColDef, GridReadyEvent } from 'ag-grid-community';
 import { TeacherListPage } from './teacher-list-page';
 import { TeacherApi } from '../../../../../sch/services/teacher-api';
 import { Notification } from '../../../../../services/notification';
+import { APP_CONFIG } from '../../../../../injection-tokens/app-config.token';
 
 describe('TeacherListPage', () => {
   let component: TeacherListPage;
@@ -40,6 +43,9 @@ describe('TeacherListPage', () => {
         { provide: MatDialog, useValue: dialogMock },
         { provide: Router, useValue: routerMock },
         { provide: ActivatedRoute, useValue: {} },
+        { provide: APP_CONFIG, useValue: { apiUrl: '' } },
+        provideHttpClient(),
+        provideHttpClientTesting(),
       ],
     }).compileComponents();
 
@@ -59,14 +65,12 @@ describe('TeacherListPage', () => {
     const teachers = [{ id: 1, name: 'Alice' } as any];
     teacherApiMock.getTeachers.and.returnValue(of(teachers));
 
-    (component as any).rowData = [];
-    const markSpy = spyOn((component as any).cdr, 'markForCheck');
+    (component as any).rowData.set([]);
     (component as any).onGridReady({} as GridReadyEvent);
 
     expect(teacherApiMock.getTeachers).toHaveBeenCalled();
-    expect((component as any).rowData).toEqual(teachers);
-    expect((component as any).gridDataLoading).toBeFalse();
-    expect(markSpy).toHaveBeenCalled();
+    expect((component as any).rowData()).toEqual(teachers);
+    expect((component as any).gridDataLoading()).toBeFalse();
   });
 
   it('sets empty rowData when API returns empty', () => {
@@ -74,8 +78,8 @@ describe('TeacherListPage', () => {
 
     (component as any).onGridReady({} as GridReadyEvent);
 
-    expect((component as any).rowData).toEqual([]);
-    expect((component as any).gridDataLoading).toBeFalse();
+    expect((component as any).rowData()).toEqual([]);
+    expect((component as any).gridDataLoading()).toBeFalse();
   });
 
   it('navigates to edit on edit action click', () => {
@@ -108,13 +112,13 @@ describe('TeacherListPage', () => {
 
   it('onRemoveAll deletes after confirmation', () => {
     const onDeletesSpy = spyOn<any>(component, 'onDeletes');
-    (component as any).rowData = [{ id: 1 } as any, { id: 2 } as any];
+    (component as any).rowData.set([{ id: 1 } as any, { id: 2 } as any]);
     dialogMock.open.and.returnValue({ afterClosed: () => of(true) } as any);
 
     (component as any).onRemoveAll();
 
     expect(dialogMock.open).toHaveBeenCalled();
-    expect(onDeletesSpy).toHaveBeenCalledWith((component as any).rowData);
+    expect(onDeletesSpy).toHaveBeenCalledWith((component as any).rowData());
   });
 
   it('onRemoveAll does nothing when cancelled', () => {
@@ -137,15 +141,13 @@ describe('TeacherListPage', () => {
     spyOn<any>(component, 'setGridData');
     teacherApiMock.deleteTeacher.and.returnValue(of(void 0));
     const toDelete = [{ id: 10 } as any, { id: 11 } as any];
-    const markSpy = spyOn((component as any).cdr, 'markForCheck');
 
     (component as any).onDeletes(toDelete);
 
-    expect((component as any).isDeleting).toBeFalse();
+    expect((component as any).isDeleting()).toBeFalse();
     expect(teacherApiMock.deleteTeacher).toHaveBeenCalledTimes(2);
     expect(notificationMock.success).toHaveBeenCalled();
     expect(component['setGridData']).toHaveBeenCalled();
-    expect(markSpy).toHaveBeenCalled();
   });
 
   it('onDeletes handles error and shows error notification', () => {
@@ -161,7 +163,7 @@ describe('TeacherListPage', () => {
 
     (component as any).onDeletes(toDelete);
 
-    expect((component as any).isDeleting).toBeFalse();
+    expect((component as any).isDeleting()).toBeFalse();
     expect(notificationMock.error).toHaveBeenCalled();
   });
 });
