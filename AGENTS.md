@@ -12,7 +12,7 @@ SCH/
   SCH.Models/       # Domain entities + DTOs
   SCH.Mappings/     # AutoMapper profiles
   SCH.Shared/       # Cross-cutting: exceptions, custom logger, utilities
-  SCH.Tests/        # Empty — no backend tests yet
+  SCH.Tests/        # xUnit + Moq unit tests (service layer)
   SCH.Database.Core/ # SQL .sqlproj DDL files (documentation only, not deployed)
   SCH.Client/       # Angular 20 frontend
 ```
@@ -30,7 +30,7 @@ dotnet build SCH\SCH.sln
 # Run API (HTTP :5071, HTTPS :7190)
 dotnet run --project SCH\SCH.Api\SCH.Api.csproj
 
-# Run tests (project is currently empty)
+# Run tests
 dotnet test SCH\SCH.sln
 ```
 
@@ -68,9 +68,58 @@ Services, repositories, and UnitOfWork implementations are **auto-registered via
 - Implement the `IService` marker interface (services) or `IRepository` marker interface (repositories)
 - The concrete class must implement **exactly one** interface that inherits from the marker — `Single(...)` will throw if more than one matches
 
+### Policy-Based Authorization
+
+All controller endpoints are protected with named policies defined in `SCH.Api/Authorization/AuthorizationExtensions.cs` and registered via `AddSchoolAppPolicies()`. Policy constants live in `SCH.Models.Auth.Constants.Policy`; permission claim strings live in `SCH.Models.Auth.Constants.Permission`.
+
+| Policy | Who passes |
+|---|---|
+| `ViewStudents` | Admin, Teacher, Student role, or `students:read` claim |
+| `AddStudents` | Admin or `students:add` claim |
+| `EditStudents` | Admin or `students:write` claim; Student with `students:write-own` claim may only edit their own record (enforced by `StudentRecordEditAuthorizationHandler` via route `id`) |
+| `DeleteStudents` | Admin or `students:remove` claim |
+| `ViewTeachers` | Admin, Teacher role, or `teachers:read` claim |
+| `EditTeachers` | Admin or `teachers:write` claim; Teacher with `teachers:write-own` claim may only edit their own record (enforced by `TeacherRecordEditAuthorizationHandler`) |
+| `DeleteTeachers` | Admin or `teachers:remove` claim |
+| `ViewCourses` | Admin, Teacher, Student role, or `courses:read` claim |
+| `AddCourses` | Admin or `courses:add` claim |
+| `EditCourses` | Admin or `courses:write` claim |
+| `DeleteCourses` | Admin or `courses:remove` claim |
+| `ClearCache` | Admin role only |
+
+**Resource-based handlers** (`StudentRecordEditAuthorizationHandler`, `TeacherRecordEditAuthorizationHandler`) are registered as `IAuthorizationHandler` singletons. They read the route `id` via `IRouteInfo` and compare it against the `own_student_id` / `own_teacher_id` claim to enforce write-own access.
+
+### Cache Service
+
+`ICacheService` (`SCH.Shared/Cache/`) wraps `IMemoryCache`. Registered as a singleton via `CacheExtensions.AddCacheServices()` in `SCH.Core`.
+
+- **Get / Add / Remove / Clear** — standard instance methods for use via DI.
+- **Static overloads** of the same methods are available when `IMemoryCache` is directly accessible (e.g., EF interceptors).
+- Default expiration falls back to `AppSettings:CacheExpirationSeconds` (default **300 s**) when no explicit TTL is passed to `Add`.
+- Currently used by `CoursesService` to cache the full course list.
+- `CacheController` (`POST /api/cache/clear`, `DELETE /api/cache/{key}`) exposes cache management endpoints, both gated by the `ClearCache` policy (Admin only).
+
 ### Custom Logger — Not the Standard .NET One
 
 Inject `SCH.Shared.Logger.ILogger<T>`, **not** `Microsoft.Extensions.Logging.ILogger<T>`. The custom interface wraps NLog. Logs go to `C:/logs/SCH/app-log-<date>.txt`.
+
+### Backend Unit Tests
+
+Tests use **xUnit + Moq** and live in `SCH.Tests/`. Each service layer has its own test class:
+
+| File | Covers |
+|---|---|
+| `Students/StudentsServiceTests.cs` | `StudentsService` — get, insert (with/without courses, with user-role assignment), update, delete |
+| `Courses/CoursesServiceTests.cs` | `CoursesService` — CRUD scenarios |
+| `Teachers/TeachersServiceTests.cs` | `TeachersService` — get, update |
+| `IdentityUsers/IdentityUsersServiceTests.cs` | `IdentityUsersService` |
+| `Images/ImageServiceTests.cs` | `ImageService` — upload, extension validation |
+
+All tests mock repositories and UnitOfWork via Moq; no database is required. Run with:
+
+```powershell
+dotnet test SCH\SCH.sln
+```
 
 ### Dual UnitOfWork
 
