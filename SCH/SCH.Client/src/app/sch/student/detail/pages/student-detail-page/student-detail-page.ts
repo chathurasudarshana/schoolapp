@@ -15,7 +15,7 @@ import { ImageApi } from '../../../../../sch/services/image-api';
 import { CommonModule, formatDate } from '@angular/common';
 import { Notification } from '../../../../../services/notification';
 import { SecureImage } from '../../../../../pipes/secure-image';
-import { HasUnsavedChanges } from '../../../../../interfaces/has-unsaved-changes';
+import { EditBase } from '../../../../../directives/edit-base.directive';
 import { Auth } from '../../../../../services/auth';
 import { IdentityUserApi } from '../../../../../sch/services/identity-user-api';
 import { UserLookup } from '../../../../../sch/interfaces/user-lookup';
@@ -28,7 +28,7 @@ import { catchError, finalize, tap } from 'rxjs/operators';
   templateUrl: './student-detail-page.html',
   styleUrl: './student-detail-page.scss',
 })
-export class StudentDetailPage implements OnInit, HasUnsavedChanges {
+export class StudentDetailPage extends EditBase implements OnInit {
   protected readonly auth = inject(Auth);
   protected readonly studentId = signal(0);
   protected readonly student = signal<Student | null>(null);
@@ -54,6 +54,7 @@ export class StudentDetailPage implements OnInit, HasUnsavedChanges {
     @Inject(APP_CONFIG) private readonly appConfig: AppConfig,
     private readonly notification: Notification
   ) {
+    super();
     this.studentForm = this.fb.group({
       id: [0],
       firstName: ['', [Validators.required, Validators.minLength(2)]],

@@ -11,7 +11,7 @@ import {
 import { CourseApi } from '../../../../../sch/services/course-api';
 import { CommonModule } from '@angular/common';
 import { Notification } from '../../../../../services/notification';
-import { HasUnsavedChanges } from '../../../../../interfaces/has-unsaved-changes';
+import { EditBase } from '../../../../../directives/edit-base.directive';
 
 
 @Component({
@@ -20,7 +20,7 @@ import { HasUnsavedChanges } from '../../../../../interfaces/has-unsaved-changes
   templateUrl: './course-detail-page.html',
   styleUrl: './course-detail-page.scss'
 })
-export class CourseDetailPage implements OnInit, HasUnsavedChanges {
+export class CourseDetailPage extends EditBase implements OnInit {
   protected readonly courseId = signal(0);
 
   protected readonly course = signal<Course | null>(null);
@@ -37,6 +37,7 @@ export class CourseDetailPage implements OnInit, HasUnsavedChanges {
     private readonly courseApi: CourseApi,
     private readonly notification: Notification
   ) {
+    super();
     this.courseForm = this.fb.group({
       id: [0],
       name: ['', [Validators.required, Validators.minLength(2)]],
