@@ -188,6 +188,49 @@
             </div>
         </div>
 
+        <div class="form-group">
+            <label>Courses</label>
+            <table class="table table-sm" formArrayName="courses">
+                <thead>
+                    <tr>
+                        <th>Course</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (row of coursesArray.controls; track $index; let i = $index) {
+                    <tr [formGroupName]="i">
+                        @if (row.value.courseId) {
+                        <td>{{row.value.courseId}} | {{ row.value.courseName }}</td>
+                        } @else {
+                        <td>
+                            <select formControlName="courseId" class="form-control">
+                                <option [ngValue]="null">-- Select Course --</option>
+                                @for (c of getAvailableCoursesForRow(i); track c.id) {
+                                <option [ngValue]="c.id">{{ c.name }}</option>
+                                }
+                            </select>
+                        </td>
+                        }
+                        <td>
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-danger"
+                                (click)="removeCourseRow(i)"
+                            >Remove</button>
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+            <button
+                type="button"
+                class="btn btn-sm btn-secondary"
+                (click)="addCourseRow()"
+                [disabled]="getAvailableCoursesForRow(coursesArray.length).length === 0"
+            >Add Course</button>
+        </div>
+
         <button
             type="submit"
             class="btn btn-primary"

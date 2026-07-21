@@ -2,6 +2,7 @@ import { Component, Inject, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
 import { Student } from '../../../../../sch/interfaces/student';
 import {
+  FormArray,
   FormBuilder,
   FormControl,
   FormGroup,
@@ -15,12 +16,35 @@ import { ImageApi } from '../../../../../sch/services/image-api';
 import { CommonModule, formatDate } from '@angular/common';
 import { Notification } from '../../../../../services/notification';
 import { SecureImage } from '../../../../../pipes/secure-image';
-import { EditBase } from '../../../../../directives/edit-base.directive';
 import { Auth } from '../../../../../services/auth';
 import { IdentityUserApi } from '../../../../../sch/services/identity-user-api';
 import { UserLookup } from '../../../../../sch/interfaces/user-lookup';
 import { Observable, forkJoin, of } from 'rxjs';
 import { catchError, finalize, tap } from 'rxjs/operators';
+import { EditBase } from '../../../../../directives/edit-base.directive';
+import { CourseApi } from '../../../../../sch/services/course-api';
+import { Course } from '../../../../../sch/interfaces/course';
+import { StudentCourseMap } from '../../../../interfaces/student-course-map';
+
+type CourseFormControls = {
+  courseId: FormControl<number | null>;
+  courseName: FormControl<string | null>;
+  enrollmentDate: FormControl<Date>;
+};
+
+type CourseFormValue = Pick<StudentCourseMap, 'courseId' | 'courseName' | 'enrollmentDate'>;
+
+type StudentFormControls = {
+  id: FormControl<number>;
+  firstName: FormControl<string>;
+  lastName: FormControl<string | null>;
+  email: FormControl<string | null>;
+  phoneNumber: FormControl<string | null>;
+  ssn: FormControl<string | null>;
+  startDate: FormControl<string | null>;
+  userId: FormControl<number | null>;
+  courses: FormArray<FormGroup<CourseFormControls>>;
+};
 
 @Component({
   selector: 'sch-student-detail-page',
@@ -40,8 +64,9 @@ export class StudentDetailPage extends EditBase implements OnInit {
   protected readonly profileImage = signal('');
   protected readonly availableUsers = signal<UserLookup[]>([]);
   protected readonly isUsersLoading = signal(false);
+  protected readonly availableCourses = signal<Course[]>([]);
 
-  protected studentForm: FormGroup;
+  protected studentForm: FormGroup<StudentFormControls>;
   private profileImageFile: File | null = null;
 
   constructor(
@@ -51,20 +76,24 @@ export class StudentDetailPage extends EditBase implements OnInit {
     private readonly studentApi: StudentApi,
     private readonly imageApi: ImageApi,
     private readonly identityUserApi: IdentityUserApi,
+    private readonly courseApi: CourseApi,
     @Inject(APP_CONFIG) private readonly appConfig: AppConfig,
     private readonly notification: Notification
   ) {
     super();
-    this.studentForm = this.fb.group({
-      id: [0],
-      firstName: ['', [Validators.required, Validators.minLength(2)]],
-      lastName: [null, [Validators.minLength(2)]],
-      email: [null, [Validators.email]],
-      phoneNumber: [null, [Validators.pattern('^[0-9]{10}$')]],
-      ssn: [null, [Validators.required, Validators.minLength(2)]],
-      startDate: [null],
-      userId: [null],
+    this.studentForm = new FormGroup<StudentFormControls>({
+      id: new FormControl<number>(0, { nonNullable: true }),
+      firstName: new FormControl<string>('', { nonNullable: true, validators: [Validators.required, Validators.minLength(2)] }),
+      lastName: new FormControl<string | null>(null, { validators: Validators.minLength(2) }),
+      email: new FormControl<string | null>(null, { validators: Validators.email }),
+      phoneNumber: new FormControl<string | null>(null, { validators: Validators.pattern('^[0-9]{10}$') }),
+      ssn: new FormControl<string | null>(null, { validators: [Validators.required, Validators.minLength(2)] }),
+      startDate: new FormControl<string | null>(null),
+      userId: new FormControl<number | null>(null),
+      courses: new FormArray<FormGroup<CourseFormControls>>([]),
     });
+    // Course row structure — controls and validators defined once here
+    // Data is applied separately via setValue in setFormData
 
     // Disable userId for non-admin users
     if (!this.auth.isAdmin()) {
@@ -77,6 +106,10 @@ export class StudentDetailPage extends EditBase implements OnInit {
       this.studentId.set(+params['id'] || 0);
       this.loadData();
     });
+
+    this.coursesArray.valueChanges.subscribe(() => {
+      this.resetCourseNames();
+    });
   }
 
   private reset(): void {
@@ -84,6 +117,7 @@ export class StudentDetailPage extends EditBase implements OnInit {
     this.profileImageFile = null;
     this.profileImage.set('');
     this.isImageChanged.set(false);
+    this.coursesArray.clear();
     this.studentForm.reset({
       id: 0,
       firstName: '',
@@ -140,8 +174,10 @@ export class StudentDetailPage extends EditBase implements OnInit {
     forkJoin({
       student: this.setStudent(),
       users: this.getBasicUsers(),
+      courses: this.courseApi.getCourses().pipe(catchError(() => of([]))),
     }).subscribe({
-      next: ({ student, users }) => {
+      next: ({ student, users, courses }) => {
+        this.availableCourses.set(courses);
         const currentUser: UserLookup[] = student?.user ? [student.user] : [];
         const merged = [
           ...currentUser,
@@ -161,6 +197,15 @@ export class StudentDetailPage extends EditBase implements OnInit {
         date = formatDate(student.startDate, 'yyyy-MM-dd', 'en');
       }
 
+      const courses = (student.courses ?? []).map((c) => ({
+        courseId: c.courseId,
+        courseName: c.courseName ?? null,
+        enrollmentDate: c.enrollmentDate ? new Date(c.enrollmentDate) : new Date(),
+      }));
+
+      this.coursesArray.clear();
+      courses.forEach(() => this.coursesArray.push(this.createCourseGroup()));
+
       this.studentForm.setValue({
         id: student.id,
         firstName: student.firstName,
@@ -170,6 +215,7 @@ export class StudentDetailPage extends EditBase implements OnInit {
         ssn: student.ssn,
         startDate: date,
         userId: student.userId ?? null,
+        courses,
       });
     }
   }
@@ -218,17 +264,27 @@ export class StudentDetailPage extends EditBase implements OnInit {
 
   private saveStudent(image: string | null): void {
     const student: Student = {
-      id: this.studentForm.value.id,
-      firstName: this.studentForm.value.firstName,
-      lastName: this.studentForm.value.lastName,
-      email: this.studentForm.value.email,
-      phoneNumber: this.studentForm.value.phoneNumber,
-      ssn: this.studentForm.value.ssn,
-      startDate: new Date(this.studentForm.value.startDate),
+      id: this.studentForm.value.id ?? 0,
+      firstName: this.studentForm.value.firstName!,
+      lastName: this.studentForm.value.lastName ?? '',
+      email: this.studentForm.value.email ?? '',
+      phoneNumber: this.studentForm.value.phoneNumber ?? '',
+      ssn: this.studentForm.value.ssn ?? '',
+      startDate: new Date(this.studentForm.value.startDate ?? ''),
       image: image,
       isActive: true,
       userId: this.auth.isAdmin() ? (this.studentForm.value.userId ?? null) : undefined,
       rowVersion: this.student()?.rowVersion, // Include rowVersion for concurrency check
+      courses: this.coursesArray.controls
+        .filter((g) => g.value.courseId !== null && g.value.courseId !== undefined)
+        .map((g) => ({
+          studentId: this.studentForm.value.id!,
+          courseId: g.value.courseId!,
+          enrollmentDate: g.value.enrollmentDate!,
+          studentFirstName: null,
+          studentLastName: null,
+          courseName: null,
+        })),
     };
 
     if (student.id > 0) {
@@ -324,7 +380,50 @@ export class StudentDetailPage extends EditBase implements OnInit {
     return this.studentForm.dirty || this.isImageChanged();
   }
 
-  protected get formControls() {
+  private resetCourseNames(): void {
+    this.coursesArray.controls.forEach((group) => {
+      if (!group.value.courseName) {
+        const courseId = group.value.courseId;
+        const course = this.availableCourses().find((c) => c.id === courseId);
+        group.get('courseName')!.setValue(course ? course.name : null, { emitEvent: false });
+      }
+
+    });
+  }
+
+  private createCourseGroup(): FormGroup<CourseFormControls> {
+    return this.fb.group({
+      courseId: new FormControl<number | null>(null, { validators: Validators.required, nonNullable: false }),
+      courseName: new FormControl<string | null>(null),
+      enrollmentDate: new FormControl<Date>(new Date(), { nonNullable: true }),
+    });
+  }
+
+  protected addCourseRow(): void {
+    this.coursesArray.push(this.createCourseGroup());
+    this.studentForm.markAsDirty();
+  }
+
+  protected removeCourseRow(index: number): void {
+    this.coursesArray.removeAt(index);
+    this.studentForm.markAsDirty();
+  }
+
+  protected get coursesArray(): FormArray<FormGroup<CourseFormControls>> {
+    return this.studentForm.get('courses') as FormArray<FormGroup<CourseFormControls>>;
+  }
+
+  protected getAvailableCoursesForRow(index: number): Course[] {
+    const usedIds = new Set(
+      this.coursesArray.controls
+        .filter((_, i) => i !== index)
+        .map((g) => g.value.courseId)
+        .filter(Boolean)
+    );
+    return this.availableCourses().filter((c) => !usedIds.has(c.id));
+  }
+
+  protected get formControls(): StudentFormControls {
     return this.studentForm.controls;
   }
 }

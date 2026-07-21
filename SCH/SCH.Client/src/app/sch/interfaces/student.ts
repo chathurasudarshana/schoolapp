@@ -1,4 +1,5 @@
 import { UserLookup } from './user-lookup';
+import { StudentCourseMap } from './student-course-map';
 
 export interface Student {
     id: number;
@@ -12,6 +13,7 @@ export interface Student {
     isActive: boolean;
     userId?: number | null;
     user?: UserLookup | null;
+    courses?: StudentCourseMap[];
 
     /**
      * Row version for optimistic concurrency control
