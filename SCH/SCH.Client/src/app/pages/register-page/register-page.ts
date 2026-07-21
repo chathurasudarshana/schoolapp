@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnDestroy } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -9,8 +9,8 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { Observable, of } from 'rxjs';
-import { map, catchError, debounceTime, switchMap, first } from 'rxjs/operators';
+import { Observable, of, Subject, ReplaySubject } from 'rxjs';
+import { map, catchError, debounceTime, switchMap, first, takeUntil } from 'rxjs/operators';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -38,7 +38,7 @@ import { RegisterRequest } from '../../interfaces/register-request';
   templateUrl: './register-page.html',
   styleUrl: './register-page.scss',
 })
-export class RegisterPage {
+export class RegisterPage implements OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly authApi = inject(AuthApi);
   private readonly authService = inject(Auth);
@@ -49,6 +49,32 @@ export class RegisterPage {
   public isLoading = signal(false);
   public hidePassword = signal(true);
   public hideConfirmPassword = signal(true);
+
+  private readonly destroy$ = new Subject<void>();
+  private readonly usernameSubject = new ReplaySubject<string>(1);
+  private readonly emailSubject = new ReplaySubject<string>(1);
+
+  private readonly username$ = this.usernameSubject.pipe(
+    debounceTime(500),
+    switchMap((username) =>
+      this.authApi.checkUsername(username).pipe(
+        map((response) => response.isAvailable ? null : { usernameTaken: true }),
+        catchError(() => of(null))
+      )
+    ),
+    takeUntil(this.destroy$)
+  );
+
+  private readonly email$ = this.emailSubject.pipe(
+    debounceTime(500),
+    switchMap((email) =>
+      this.authApi.checkEmail(email).pipe(
+        map((response) => response.isAvailable ? null : { emailTaken: true }),
+        catchError(() => of(null))
+      )
+    ),
+    takeUntil(this.destroy$)
+  );
 
   constructor() {
     this.registerForm = this.formBuilder.nonNullable.group(
@@ -89,6 +115,11 @@ export class RegisterPage {
     );
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   /**
    * Async validator: Check if username is available
    */
@@ -97,19 +128,8 @@ export class RegisterPage {
       if (!control.value) {
         return of(null);
       }
-
-      return of(control.value).pipe(
-        debounceTime(500), // Wait 500ms after user stops typing
-        switchMap((username) =>
-          this.authApi.checkUsername(username).pipe(
-            map((response) =>
-              response.isAvailable ? null : { usernameTaken: true }
-            ),
-            catchError(() => of(null))
-          )
-        ),
-        first()
-      );
+      this.usernameSubject.next(control.value);
+      return this.username$.pipe(first());
     };
   }
 
@@ -121,19 +141,8 @@ export class RegisterPage {
       if (!control.value) {
         return of(null);
       }
-
-      return of(control.value).pipe(
-        debounceTime(500), // Wait 500ms after user stops typing
-        switchMap((email) =>
-          this.authApi.checkEmail(email).pipe(
-            map((response) =>
-              response.isAvailable ? null : { emailTaken: true }
-            ),
-            catchError(() => of(null))
-          )
-        ),
-        first()
-      );
+      this.emailSubject.next(control.value);
+      return this.email$.pipe(first());
     };
   }
 
