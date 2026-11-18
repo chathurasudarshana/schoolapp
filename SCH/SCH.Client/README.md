@@ -1,6 +1,6 @@
 # SCHClient
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.1.3.
+This project uses [Angular CLI](https://github.com/angular/angular-cli) version 22.2.7 with Angular 22.
 
 ## Development server
 
