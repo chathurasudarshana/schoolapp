@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
-import { provideHttpClient, withXhr } from '@angular/common/http';
+import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { of } from 'rxjs';
 
@@ -42,7 +42,7 @@ describe('StudentListPage', () => {
         { provide: ToastrService, useValue: toastrMock },
         { provide: ImageApi, useValue: imageApiMock },
         { provide: Router, useValue: routerMock },
-        provideHttpClient(withXhr()),
+        provideHttpClient(),
         provideHttpClientTesting(),
       ],
     }).compileComponents();

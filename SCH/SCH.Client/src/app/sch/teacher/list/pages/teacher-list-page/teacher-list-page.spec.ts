@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ChangeDetectorRef } from '@angular/core';
-import { provideHttpClient, withXhr } from '@angular/common/http';
+import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { of, throwError } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
@@ -44,7 +44,7 @@ describe('TeacherListPage', () => {
         { provide: Router, useValue: routerMock },
         { provide: ActivatedRoute, useValue: {} },
         { provide: APP_CONFIG, useValue: { apiUrl: '' } },
-        provideHttpClient(withXhr()),
+        provideHttpClient(),
         provideHttpClientTesting(),
       ],
     }).compileComponents();

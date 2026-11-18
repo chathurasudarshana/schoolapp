@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideHttpClient, withXhr } from '@angular/common/http';
+import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { SCHPage } from './schpage';
@@ -15,7 +15,7 @@ describe('SCHPage', () => {
       imports: [SCHPage],
       providers: [
         provideRouter([]),
-        provideHttpClient(withXhr()),
+        provideHttpClient(),
         provideHttpClientTesting(),
         { provide: APP_CONFIG, useValue: { apiUrl: '' } },
         SidenavService

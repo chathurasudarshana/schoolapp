@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { HttpClient, HttpErrorResponse, provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { serverErrorInterceptor } from './server-error.interceptor';
 
@@ -14,7 +14,7 @@ describe('ServerErrorInterceptor', () => {
 
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(withXhr(), withInterceptors([serverErrorInterceptor])),
+        provideHttpClient(withInterceptors([serverErrorInterceptor])),
         provideHttpClientTesting(),
         { provide: Router, useValue: routerSpy }
       ]

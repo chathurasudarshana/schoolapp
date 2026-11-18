@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
-import { provideHttpClient, withXhr } from '@angular/common/http';
+import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { of, throwError } from 'rxjs';
 
@@ -45,7 +45,7 @@ describe('TeacherDetailPage', () => {
         { provide: Router, useValue: routerMock },
         { provide: Notification, useValue: notificationMock },
         { provide: APP_CONFIG, useValue: { apiUrl: 'http://test' } },
-        provideHttpClient(withXhr()),
+        provideHttpClient(),
         provideHttpClientTesting(),
       ],
     }).compileComponents();
