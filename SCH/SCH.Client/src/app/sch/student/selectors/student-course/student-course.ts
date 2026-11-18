@@ -10,7 +10,7 @@ import { StudentApi } from '../../services/student-api';
 import { AgGridAngular } from 'ag-grid-angular';
 import { Course } from '../../../../sch/interfaces/course';
 import { CourseApi } from '../../../../sch/services/course-api';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { concat, forkJoin } from 'rxjs';
 import { ConfirmDialog } from '../../../../selectors/confirm-dialog/confirm-dialog';
@@ -21,7 +21,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 
 @Component({
   selector: 'sch-student-course',
-  imports: [CommonModule, FormsModule, AgGridAngular],
+  imports: [FormsModule, AgGridAngular],
   templateUrl: './student-course.html',
   styleUrl: './student-course.scss'
 })
@@ -84,7 +84,7 @@ export class StudentCourse implements OnInit {
   private readonly courses = signal<Course[]>([]);
   protected readonly notSelectedCourses = signal<Course[]>([]);
 
-  protected selectedCourseId: string | null = null;
+  protected readonly selectedCourseId = signal<string | null>(null);
 
   protected readonly dataLoading = signal(false);
   protected readonly gridDataLoading = signal(false);
@@ -137,7 +137,7 @@ export class StudentCourse implements OnInit {
   }
 
   protected onAddCourse(): void {
-    const courseId = Number(this.selectedCourseId);
+    const courseId = Number(this.selectedCourseId());
     if (courseId) {
       const course: StudentCourseMap = {
         studentId: this.studentId(),
@@ -153,7 +153,7 @@ export class StudentCourse implements OnInit {
         .insertCourse(this.studentId(), courseId, course)
         .subscribe(() => {
           this.resetGridData();
-          this.selectedCourseId = null;
+          this.selectedCourseId.set(null);
           this.notification.success('Course added successfully');
         })
         .add(() => {

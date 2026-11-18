@@ -1,3 +1,4 @@
+import { provideZoneChangeDetection } from "@angular/core";
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
 import { App } from './app/app';
@@ -13,7 +14,7 @@ fetch('/config.json')
   .then((config) => {
     return bootstrapApplication(App, {
       ...appConfig,
-      providers: [...(appConfig.providers || []), provideEnvironment(config)],
+      providers: [provideZoneChangeDetection(),...(appConfig.providers || []), provideEnvironment(config)],
     });
   })
   .catch((err) => console.error('Bootstrap failed:', err));

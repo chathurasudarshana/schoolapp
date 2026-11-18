@@ -9,14 +9,14 @@ import {
   Validators,
 } from '@angular/forms';
 import { CourseApi } from '../../../../../sch/services/course-api';
-import { CommonModule } from '@angular/common';
+
 import { Notification } from '../../../../../services/notification';
 import { EditBase } from '../../../../../directives/edit-base.directive';
 
 
 @Component({
   selector: 'sch-course-detail-page',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ReactiveFormsModule],
   templateUrl: './course-detail-page.html',
   styleUrl: './course-detail-page.scss'
 })
