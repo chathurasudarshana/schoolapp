@@ -8,6 +8,7 @@ import { StudentDetailPage } from './student-detail-page';
 import { StudentApi } from '../../../services/student-api';
 import { ImageApi } from '../../../../../sch/services/image-api';
 import { IdentityUserApi } from '../../../../services/identity-user-api';
+import { CourseApi } from '../../../../../sch/services/course-api';
 import { APP_CONFIG } from '../../../../../injection-tokens/app-config.token';
 import { Notification } from '../../../../../services/notification';
 
@@ -20,6 +21,7 @@ describe('StudentDetailPage', () => {
   let identityUserApiMock: jasmine.SpyObj<IdentityUserApi>;
   let routerMock: jasmine.SpyObj<Router>;
   let notificationMock: jasmine.SpyObj<Notification>;
+  let courseApiMock: jasmine.SpyObj<CourseApi>;
 
   async function setupWithParams(params: any) {
     studentApiMock = jasmine.createSpyObj('StudentApi', [
@@ -38,6 +40,8 @@ describe('StudentDetailPage', () => {
       'success',
       'error',
     ]);
+    courseApiMock = jasmine.createSpyObj('CourseApi', ['getCourses']);
+    courseApiMock.getCourses.and.returnValue(of([]));
 
     await TestBed.configureTestingModule({
       imports: [StudentDetailPage],
@@ -49,6 +53,7 @@ describe('StudentDetailPage', () => {
         { provide: StudentApi, useValue: studentApiMock },
         { provide: ImageApi, useValue: imageApiMock },
         { provide: IdentityUserApi, useValue: identityUserApiMock },
+        { provide: CourseApi, useValue: courseApiMock },
         { provide: Router, useValue: routerMock },
         { provide: Notification, useValue: notificationMock },
         { provide: APP_CONFIG, useValue: { apiUrl: 'http://test' } },
