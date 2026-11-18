@@ -9,7 +9,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { TeacherApi } from '../../../../../sch/services/teacher-api';
-import { CommonModule } from '@angular/common';
+
 import { Notification } from '../../../../../services/notification';
 import { EditBase } from '../../../../../directives/edit-base.directive';
 import { Auth } from '../../../../../services/auth';
@@ -21,7 +21,7 @@ import { catchError, finalize, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'sch-teacher-detail-page',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ReactiveFormsModule],
   templateUrl: './teacher-detail-page.html',
   styleUrl: './teacher-detail-page.scss'
 })

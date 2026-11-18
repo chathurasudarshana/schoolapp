@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { StudentCourse } from '../../../selectors/student-course/student-course';
@@ -6,7 +6,7 @@ import { StudentCourse } from '../../../selectors/student-course/student-course'
 
 @Component({
   selector: 'sch-student-course-page',
-  imports: [CommonModule, StudentCourse],
+  imports: [StudentCourse],
   templateUrl: './student-course-page.html',
   styleUrl: './student-course-page.scss',
 })

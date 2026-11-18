@@ -1,10 +1,10 @@
 import { Component, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterModule } from '@angular/router';
 import { SidenavService } from '../../services/sidenav.service';
 @Component({
   selector: 'sch-sidenav',
-  imports: [CommonModule, RouterModule],
+  imports: [RouterModule],
   templateUrl: './sch-sidenav.html',
   styleUrl: './sch-sidenav.scss',
 })
