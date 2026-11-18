@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ICellRendererAngularComp } from 'ag-grid-angular';
 import { ICellRendererParams } from 'ag-grid-community';
 import { SecureImage } from '../../../../pipes/secure-image';
@@ -12,6 +12,7 @@ import { CommonModule } from '@angular/common';
   selector: 'student-photo-cell',
   imports: [SecureImage, CommonModule],
   templateUrl: './student-photo-cell.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './student-photo-cell.scss'
 })
 export class StudentPhotoCell implements ICellRendererAngularComp {

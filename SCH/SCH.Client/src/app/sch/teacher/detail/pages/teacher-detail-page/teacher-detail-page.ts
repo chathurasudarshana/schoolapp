@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Teacher } from '../../../../../sch/interfaces/teacher';
 import {
@@ -23,6 +23,7 @@ import { catchError, finalize, tap } from 'rxjs/operators';
   selector: 'sch-teacher-detail-page',
   imports: [ReactiveFormsModule],
   templateUrl: './teacher-detail-page.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './teacher-detail-page.scss'
 })
 export class TeacherDetailPage extends EditBase implements OnInit {

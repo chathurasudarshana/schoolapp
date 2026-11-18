@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { Auth } from './auth';
 import { APP_CONFIG } from '../injection-tokens/app-config.token';
@@ -10,7 +10,7 @@ describe('Auth', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         Auth,
         { provide: APP_CONFIG, useValue: { apiUrl: '' } },

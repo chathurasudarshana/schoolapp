@@ -1,5 +1,5 @@
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { StudentCourse } from '../../../selectors/student-course/student-course';
 
@@ -8,6 +8,7 @@ import { StudentCourse } from '../../../selectors/student-course/student-course'
   selector: 'sch-student-course-page',
   imports: [StudentCourse],
   templateUrl: './student-course-page.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './student-course-page.scss',
 })
 export class StudentCoursePage implements OnInit {

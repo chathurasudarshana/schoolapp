@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { HttpClient, HttpErrorResponse, provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { unauthorizedInterceptor } from './unauthorized.interceptor';
 
@@ -14,7 +14,7 @@ describe('UnauthorizedInterceptor', () => {
 
     TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(withInterceptors([unauthorizedInterceptor])),
+        provideHttpClient(withXhr(), withInterceptors([unauthorizedInterceptor])),
         provideHttpClientTesting(),
         { provide: Router, useValue: routerSpy }
       ]

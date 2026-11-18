@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CourseStudentCount } from '../../../interfaces/course-student-count';
 import { DashboardApi } from '../../../services/dashboard-api';
 
@@ -7,6 +7,7 @@ import { DashboardApi } from '../../../services/dashboard-api';
   selector: 'sch-dashboard-page',
   imports: [],
   templateUrl: './dashboard-page.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './dashboard-page.scss'
 })
 export class DashboardPage implements OnInit {

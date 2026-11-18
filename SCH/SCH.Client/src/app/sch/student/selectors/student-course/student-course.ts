@@ -1,4 +1,4 @@
-import { Component, Inject, input, OnInit, signal } from '@angular/core';
+import { Component, Inject, input, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { StudentCourseMap } from '../../../../sch/interfaces/student-course-map';
 import {
   AllCommunityModule,
@@ -23,6 +23,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
   selector: 'sch-student-course',
   imports: [FormsModule, AgGridAngular],
   templateUrl: './student-course.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './student-course.scss'
 })
 export class StudentCourse implements OnInit {

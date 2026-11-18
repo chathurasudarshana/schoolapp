@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { APP_CONFIG } from '../../../injection-tokens/app-config.token';
 import { SCHHeader } from './sch-header';
@@ -15,7 +15,7 @@ describe('SCHHeader', () => {
       imports: [SCHHeader],
       providers: [
         SidenavService,
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         { provide: APP_CONFIG, useValue: { apiUrl: '' } }
       ]
