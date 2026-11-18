@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, OnDestroy } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -36,7 +36,6 @@ import { RegisterRequest } from '../../interfaces/register-request';
     MatProgressSpinnerModule,
   ],
   templateUrl: './register-page.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './register-page.scss',
 })
 export class RegisterPage implements OnDestroy {

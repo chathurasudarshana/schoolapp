@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { finalize } from 'rxjs';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -17,7 +17,6 @@ import { Policy } from '../../../enums/policy';
   selector: 'sch-header',
   imports: [MatButtonModule, MatDividerModule, MatIconModule, MatMenuModule, HighlightDirective, HasPolicy],
   templateUrl: './sch-header.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './sch-header.scss',
 })
 export class SCHHeader {

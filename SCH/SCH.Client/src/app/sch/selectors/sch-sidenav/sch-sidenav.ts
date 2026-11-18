@@ -1,4 +1,4 @@
-import { Component, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed } from '@angular/core';
 
 import { RouterModule } from '@angular/router';
 import { SidenavService } from '../../services/sidenav.service';
@@ -6,7 +6,6 @@ import { SidenavService } from '../../services/sidenav.service';
   selector: 'sch-sidenav',
   imports: [RouterModule],
   templateUrl: './sch-sidenav.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './sch-sidenav.scss',
 })
 export class SCHSideNav {

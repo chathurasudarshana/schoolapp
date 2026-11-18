@@ -1,4 +1,4 @@
-import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -32,7 +32,6 @@ import { LoginRequest } from '../../interfaces/login-request';
     MatCheckboxModule,
   ],
   templateUrl: './login-page.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './login-page.scss',
 })
 export class LoginPage {

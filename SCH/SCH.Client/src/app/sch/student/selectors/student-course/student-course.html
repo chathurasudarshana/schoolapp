@@ -9,7 +9,8 @@
           <select
             id="courseSelect"
             class="form-control"
-            [(ngModel)]="selectedCourseId"
+            [ngModel]="selectedCourseId()"
+            (ngModelChange)="selectedCourseId.set($event)"
             >
             @for (course of notSelectedCourses(); track course) {
               <option
@@ -21,7 +22,7 @@
         <div class="col">
           <button
             class="btn btn-primary"
-            [disabled]="!selectedCourseId || isAdding()"
+            [disabled]="!selectedCourseId() || isAdding()"
             (click)="onAddCourse()"
           >Add Course</button>
         </div>

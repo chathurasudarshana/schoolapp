@@ -1,4 +1,4 @@
-import { Component, Inject, input, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Inject, input, OnInit, signal } from '@angular/core';
 import { StudentCourseMap } from '../../../../sch/interfaces/student-course-map';
 import {
   AllCommunityModule,
@@ -23,7 +23,6 @@ ModuleRegistry.registerModules([AllCommunityModule]);
   selector: 'sch-student-course',
   imports: [FormsModule, AgGridAngular],
   templateUrl: './student-course.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './student-course.scss'
 })
 export class StudentCourse implements OnInit {
@@ -85,7 +84,7 @@ export class StudentCourse implements OnInit {
   private readonly courses = signal<Course[]>([]);
   protected readonly notSelectedCourses = signal<Course[]>([]);
 
-  protected selectedCourseId: string | null = null;
+  protected readonly selectedCourseId = signal<string | null>(null);
 
   protected readonly dataLoading = signal(false);
   protected readonly gridDataLoading = signal(false);
@@ -138,7 +137,7 @@ export class StudentCourse implements OnInit {
   }
 
   protected onAddCourse(): void {
-    const courseId = Number(this.selectedCourseId);
+    const courseId = Number(this.selectedCourseId());
     if (courseId) {
       const course: StudentCourseMap = {
         studentId: this.studentId(),
@@ -154,7 +153,7 @@ export class StudentCourse implements OnInit {
         .insertCourse(this.studentId(), courseId, course)
         .subscribe(() => {
           this.resetGridData();
-          this.selectedCourseId = null;
+          this.selectedCourseId.set(null);
           this.notification.success('Course added successfully');
         })
         .add(() => {

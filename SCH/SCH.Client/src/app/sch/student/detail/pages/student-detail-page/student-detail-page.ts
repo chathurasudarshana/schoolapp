@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Inject, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
 import { Student } from '../../../../../sch/interfaces/student';
 import {
@@ -50,7 +50,6 @@ type StudentFormControls = {
   selector: 'sch-student-detail-page',
   imports: [RouterOutlet, CommonModule, ReactiveFormsModule, SecureImage],
   templateUrl: './student-detail-page.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './student-detail-page.scss',
 })
 export class StudentDetailPage extends EditBase implements OnInit {

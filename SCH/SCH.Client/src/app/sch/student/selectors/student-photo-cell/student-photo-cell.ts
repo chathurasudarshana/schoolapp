@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { ICellRendererAngularComp } from 'ag-grid-angular';
 import { ICellRendererParams } from 'ag-grid-community';
 import { SecureImage } from '../../../../pipes/secure-image';
@@ -12,18 +12,17 @@ import { CommonModule } from '@angular/common';
   selector: 'student-photo-cell',
   imports: [SecureImage, CommonModule],
   templateUrl: './student-photo-cell.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './student-photo-cell.scss'
 })
 export class StudentPhotoCell implements ICellRendererAngularComp {
-  protected imageName: string | null = null;
+  protected readonly imageName = signal<string | null>(null);
 
   agInit(params: ICellRendererParams): void {
-    this.imageName = params.data?.image || null;
+    this.imageName.set(params.data?.image || null);
   }
 
   refresh(params: ICellRendererParams): boolean {
-    this.imageName = params.data?.image || null;
+    this.imageName.set(params.data?.image || null);
     return true;
   }
 }

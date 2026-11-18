@@ -1,6 +1,6 @@
-@if (imageName) {
+@if (imageName()) {
   <img 
-    [src]="imageName | secureImage:'image/getStudentProfile' | async" 
+    [src]="imageName() | secureImage:'image/getStudentProfile' | async" 
     alt="Student Profile" 
     class="student-photo"
   />

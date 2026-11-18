@@ -1,4 +1,4 @@
-import { Component, Inject, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Inject, inject, signal } from '@angular/core';
 import { AgGridAngular } from 'ag-grid-angular';
 import {
   AllCommunityModule,
@@ -41,7 +41,6 @@ ModuleRegistry.registerModules([AllCommunityModule, ServerSideRowModelModule, Se
   selector: 'sch-student-list-page',
   imports: [AgGridAngular, HasPolicy],
   templateUrl: './student-list-page.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './student-list-page.scss',
 })
 export class StudentListPage {

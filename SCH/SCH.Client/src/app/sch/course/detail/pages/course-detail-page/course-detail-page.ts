@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Course } from '../../../../../sch/interfaces/course';
 import {
@@ -18,7 +18,6 @@ import { EditBase } from '../../../../../directives/edit-base.directive';
   selector: 'sch-course-detail-page',
   imports: [ReactiveFormsModule],
   templateUrl: './course-detail-page.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './course-detail-page.scss'
 })
 export class CourseDetailPage extends EditBase implements OnInit {
