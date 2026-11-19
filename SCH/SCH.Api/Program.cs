@@ -1,4 +1,4 @@
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using NLog.Extensions.Logging;
 using SCH.API.Authorization;
 using SCH.Core.Cors;
@@ -62,19 +62,9 @@ builder.Services.AddSwaggerGen(options =>
         Description = "Enter your JWT token in the text input below.\n\nExample: \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\""
     });
 
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
     {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = new List<string>()
     });
 });
 
