@@ -14,7 +14,7 @@ SCH/
   SCH.Shared/       # Cross-cutting: exceptions, custom logger, utilities
   SCH.Tests/        # xUnit + Moq unit tests (service layer)
   SCH.Database.Core/ # SQL .sqlproj DDL files (documentation only, not deployed)
-  SCH.Client/       # Angular 20 frontend
+  SCH.Client/       # Angular 22 frontend
 ```
 
 ---
@@ -144,7 +144,7 @@ All domain entities have a `RowVersion byte[]` column. The frontend must send `R
 
 ---
 
-## Frontend (Angular 20)
+## Frontend (Angular 22)
 
 All commands run from `SCH\SCH.Client\`.
 

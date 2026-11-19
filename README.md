@@ -1,6 +1,6 @@
 # SchApp — School Management System
 
-A full-stack school management application built with **ASP.NET Core 9** and **Angular 20**.
+A full-stack school management application built with **ASP.NET Core 9** and **Angular 22**.
 
 ---
 
@@ -13,7 +13,7 @@ A full-stack school management application built with **ASP.NET Core 9** and **A
 | Auth | ASP.NET Core Identity + JWT (access + refresh tokens) |
 | Logging | NLog → `C:/logs/SCH/` |
 | API Docs | Swagger / OpenAPI |
-| Frontend | Angular 20 (standalone, zoneless, SSR-capable) |
+| Frontend | Angular 22 (standalone, zoneless, SSR-capable) |
 | UI Components | Angular Material, AG Grid Enterprise |
 | Icons | Bootstrap Icons |
 
@@ -33,7 +33,7 @@ SCH/
   SCH.Shared/       # Custom logger, exceptions, utilities
   SCH.Tests/        # xUnit + Moq unit tests (service layer)
   SCH.Database.Core/ # SQL DDL files (documentation only)
-  SCH.Client/       # Angular 20 frontend
+  SCH.Client/       # Angular 22 frontend
 ```
 
 ---
