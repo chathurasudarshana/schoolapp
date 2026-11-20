@@ -1,3 +1,6 @@
+SET QUOTED_IDENTIFIER ON;
+GO
+
 /*
 Post-Deployment Script - Seed Data							
 --------------------------------------------------------------------------------------
@@ -1161,7 +1164,7 @@ BEGIN
         'studentviewuser@schoolapp.com',
         'STUDENTVIEWUSER@SCHOOLAPP.COM',
         1,
-        'AQAAAAIAAYagAAAAEIGSV6dcLldguuvqLg4nEDB8keDYvX5ahRVABWljBJVJngrbWoC9HxCZl6fnLh+EWw==', -- PasswordHash for "Basic123!" (generated with ASP.NET Identity PasswordHasher)Ww==',
+        'AQAAAAIAAYagAAAAEIGSV6dcLldguuvqLg4nEDB8keDYvX5ahRVABWljBJVJngrbWoC9HxCZl6fnLh+EWw==', -- PasswordHash for "Basic123!" (generated with ASP.NET Identity PasswordHasher)
         NEWID(),
         NEWID(),
         NULL,

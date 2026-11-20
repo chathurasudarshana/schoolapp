@@ -1,6 +1,6 @@
 # SchApp — School Management System
 
-A full-stack school management application built with **ASP.NET Core 9** and **Angular 22**.
+A full-stack school management application built with **ASP.NET Core 11** and **Angular 22**.
 
 ---
 
@@ -8,7 +8,7 @@ A full-stack school management application built with **ASP.NET Core 9** and **A
 
 | Layer | Technology |
 |---|---|
-| Backend API | ASP.NET Core 9 Web API |
+| Backend API | ASP.NET Core 11 Web API |
 | ORM | Entity Framework Core (two contexts, one SQL Server DB) |
 | Auth | ASP.NET Core Identity + JWT (access + refresh tokens) |
 | Logging | NLog → `C:/logs/SCH/` |
@@ -24,7 +24,7 @@ A full-stack school management application built with **ASP.NET Core 9** and **A
 ```
 SCH/
   SCH.sln
-  SCH.Api/          # ASP.NET Core 9 Web API — startup project
+  SCH.Api/          # ASP.NET Core 11 Web API — startup project
   SCH.Core/         # DI wiring, filters, middleware
   SCH.Services/     # Business logic
   SCH.Repositories/ # EF Core contexts, repos, migrations
@@ -40,7 +40,7 @@ SCH/
 
 ## Prerequisites
 
-- [.NET 9 SDK](https://dotnet.microsoft.com/download)
+- [.NET 11 SDK](https://dotnet.microsoft.com/download)
 - [Node.js](https://nodejs.org/) (LTS)
 - SQL Server LocalDB (`(localdb)\MSSQLLocalDB`)
 - Visual Studio 2022 (recommended) or VS Code

@@ -1,4 +1,4 @@
-﻿CREATE PROCEDURE [dbo].[GetStudentGrid]
+CREATE PROCEDURE [dbo].[GetStudentGrid]
     @PageNumber          INT,
     @PageSize            INT,
     @SortBy              NVARCHAR(100)  = NULL,
