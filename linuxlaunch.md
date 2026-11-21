@@ -22,6 +22,62 @@ Key endpoints on Linux:
 
 ## 1. Running the project
 
+Run project summary
+
+Run sql server
+
+```bash
+# Start Docker and the SQL Server container together
+sudo systemctl start docker && sudo docker start sqlserver
+```
+```bash
+# Stop the container and Docker together
+sudo docker stop sqlserver && sudo systemctl stop docker.service docker.socket
+```
+
+Run client
+
+```bash
+cd /home/chathura/src/schoolapp/SCH/SCH.Client
+npm start
+```
+
+Run api
+
+```bash
+cd /home/chathura/src/schoolapp
+export ASPNETCORE_ENVIRONMENT=Development
+export ASPNETCORE_URLS=https://localhost:44398
+export ConnectionStrings__DefaultConnection='Server=localhost,1433;Database=SCH;User Id=sa;Password=StrongPass@123;TrustServerCertificate=True;'
+export AppSettings__ImageFolder=/home/chathura/src/schappimages
+export SCH_LOG_DIR=/home/chathura/src/schapplogs
+export AllowedOrigins='http://localhost:63953,http://127.0.0.1:63953'
+
+# Build
+dotnet build SCH/SCH.Api/SCH.Api.csproj
+
+# Tests
+dotnet test SCH/SCH.Tests/SCH.Tests.csproj
+
+# Run with the Linux overrides from 1.2
+dotnet run --project SCH/SCH.Api/SCH.Api.csproj --no-launch-profile
+```
+
+```bash
+dotnet clean SCH/SCH.Api/SCH.Api.csproj
+dotnet build --no-incremental SCH/SCH.Api/SCH.Api.csproj
+```
+
+Debug api
+
+1. Build once:
+```bash
+dotnet build /home/chathura/src/schoolapp/SCH/SCH.Api/SCH.Api.csproj
+```
+2. Open **Run and Debug** with `Ctrl+Shift+D`
+3. Select **SCH.Api (Linux 44398)** in the dropdown
+4. Press **F5**
+
 ### 1.1 Start / stop Docker and SQL Server
 
 Daily commands:
